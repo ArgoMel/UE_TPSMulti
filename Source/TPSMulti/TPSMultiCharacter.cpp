@@ -10,26 +10,25 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+#include <Kismet/GameplayStatics.h>
+#include <OnlineSubsystem.h>
+#include <Interfaces/OnlineSessionInterface.h>
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
-//////////////////////////////////////////////////////////////////////////
-// ATPSMultiCharacter
-
 ATPSMultiCharacter::ATPSMultiCharacter()
 {
-	// Set size for collision capsule
-	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
-		
 	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
+	// Set size for collision capsule
+	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
+	
 	// Configure character movement
 	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); // ...at this rotation rate
-
 	// Note: For faster iteration times these variables, and many more, can be tweaked in the Character Blueprint
 	// instead of recompiling to adjust them
 	GetCharacterMovement()->JumpZVelocity = 700.f;
@@ -49,9 +48,13 @@ ATPSMultiCharacter::ATPSMultiCharacter()
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
-
-	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
-	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+	
+	IOnlineSubsystem* onlineSubsystem=IOnlineSubsystem::Get();
+	if(onlineSubsystem)
+	{
+		mOnlineSessionInterface=onlineSubsystem->GetSessionInterface();
+		PRINT_STRING(FString::Printf(TEXT("서브시스템 찾음 %s"), *onlineSubsystem->GetSubsystemName().ToString()));
+	}
 }
 
 void ATPSMultiCharacter::BeginPlay()
@@ -59,9 +62,6 @@ void ATPSMultiCharacter::BeginPlay()
 	// Call the base class  
 	Super::BeginPlay();
 }
-
-//////////////////////////////////////////////////////////////////////////
-// Input
 
 void ATPSMultiCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -126,5 +126,28 @@ void ATPSMultiCharacter::Look(const FInputActionValue& Value)
 		// add yaw and pitch input to controller
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
+	}
+}
+
+void ATPSMultiCharacter::OpenLobby()
+{
+	UWorld* world = GetWorld();
+	if(world)
+	{
+		world->ServerTravel("/Game/ThirdPerson/Maps/Lobby?listen");
+	}
+}
+
+void ATPSMultiCharacter::CallOpenLevel(const FString& Address)
+{
+	UGameplayStatics::OpenLevel(this, *Address);
+}
+
+void ATPSMultiCharacter::CallClientTravel(const FString& Address)
+{
+	APlayerController* pc= GetGameInstance()->GetFirstLocalPlayerController();
+	if(pc)
+	{
+		pc->ClientTravel(Address,ETravelType::TRAVEL_Absolute);
 	}
 }
