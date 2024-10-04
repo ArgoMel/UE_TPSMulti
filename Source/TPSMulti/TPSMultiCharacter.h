@@ -4,13 +4,13 @@
 #include "TPSMulti.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
+#include <Interfaces/OnlineSessionInterface.h>
 #include "TPSMultiCharacter.generated.h"
 
 class USpringArmComponent;
 class UCameraComponent;
 class UInputMappingContext;
 class UInputAction;
-class IOnlineSession;
 struct FInputActionValue;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
@@ -67,6 +67,24 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void CallClientTravel(const FString& Address);
 
-	TSharedPtr<IOnlineSession,ESPMode::ThreadSafe> mOnlineSessionInterface;
+private:
+	TSharedPtr<FOnlineSessionSearch> mSessionSearch;
+
+	FOnCreateSessionCompleteDelegate CreateSessionCompleteDelegate;
+	FOnFindSessionsCompleteDelegate FindSessionsCompleteDelegate;
+	FOnJoinSessionCompleteDelegate JoinSessionCompleteDelegate;
+
+public:
+	IOnlineSessionPtr mOnlineSessionInterface;
+
+protected:
+	UFUNCTION(BlueprintCallable)
+	void CreateGameSession();
+	UFUNCTION(BlueprintCallable)
+	void JoinGameSession();
+
+	void OnCreateSessionComplete(FName SessionName, bool bWasSuccessful);
+	void OnFindSessionsComplete(bool bWasSuccessful);
+	void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
 };
 

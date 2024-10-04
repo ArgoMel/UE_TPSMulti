@@ -12,11 +12,15 @@
 #include "InputActionValue.h"
 #include <Kismet/GameplayStatics.h>
 #include <OnlineSubsystem.h>
-#include <Interfaces/OnlineSessionInterface.h>
+#include "OnlineSessionSettings.h"
+#include "Online/OnlineSessionNames.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
 ATPSMultiCharacter::ATPSMultiCharacter()
+	: CreateSessionCompleteDelegate(FOnCreateSessionCompleteDelegate::CreateUObject(this,&ThisClass::OnCreateSessionComplete))
+	, FindSessionsCompleteDelegate(FOnFindSessionsCompleteDelegate::CreateUObject(this, &ThisClass::OnFindSessionsComplete))
+	, JoinSessionCompleteDelegate(FOnJoinSessionCompleteDelegate::CreateUObject(this, &ThisClass::OnJoinSessionComplete))
 {
 	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
@@ -149,5 +153,114 @@ void ATPSMultiCharacter::CallClientTravel(const FString& Address)
 	if(pc)
 	{
 		pc->ClientTravel(Address,ETravelType::TRAVEL_Absolute);
+	}
+}
+
+void ATPSMultiCharacter::CreateGameSession()
+{
+	if (!mOnlineSessionInterface.IsValid())
+	{
+		return;
+	}
+
+	auto existingSession = mOnlineSessionInterface->GetNamedSession(NAME_GameSession);
+	if (existingSession != nullptr)
+	{
+		mOnlineSessionInterface->DestroySession(NAME_GameSession);
+	}
+
+	mOnlineSessionInterface->AddOnCreateSessionCompleteDelegate_Handle(CreateSessionCompleteDelegate);
+
+	TSharedPtr<FOnlineSessionSettings> sessionSettings = MakeShareable(new FOnlineSessionSettings());
+	sessionSettings->bIsLANMatch = false;
+	sessionSettings->NumPublicConnections = 4;
+	sessionSettings->bAllowJoinInProgress = true;
+	sessionSettings->bAllowJoinViaPresence = true;
+	sessionSettings->bShouldAdvertise = true;
+	sessionSettings->bUsesPresence = true;
+	sessionSettings->bUseLobbiesIfAvailable = true;
+	sessionSettings->Set(FName("MatchType"), FString("FreeForAll"), EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
+	const ULocalPlayer* localPlayer = GetWorld()->GetFirstLocalPlayerFromController();
+	mOnlineSessionInterface->CreateSession(*localPlayer->GetPreferredUniqueNetId(), NAME_GameSession, *sessionSettings);
+}
+
+void ATPSMultiCharacter::JoinGameSession()
+{
+	if (!mOnlineSessionInterface.IsValid())
+	{
+		return;
+	}
+
+	mOnlineSessionInterface->AddOnFindSessionsCompleteDelegate_Handle(FindSessionsCompleteDelegate);
+
+	mSessionSearch = MakeShareable(new FOnlineSessionSearch());
+	mSessionSearch->MaxSearchResults = 10000;
+	mSessionSearch->bIsLanQuery = false;
+	mSessionSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
+
+	const ULocalPlayer* localPlayer = GetWorld()->GetFirstLocalPlayerFromController();
+	mOnlineSessionInterface->FindSessions(*localPlayer->GetPreferredUniqueNetId(), mSessionSearch.ToSharedRef());
+}
+
+void ATPSMultiCharacter::OnCreateSessionComplete(FName SessionName, bool bWasSuccessful)
+{
+	if (bWasSuccessful)
+	{
+		PRINT_STRING(FString::Printf(TEXT("Created session: %s"), *SessionName.ToString()));
+
+		UWorld* world = GetWorld();
+		if (world)
+		{
+			world->ServerTravel(FString("/Game/ThirdPerson/Maps/Lobby?listen"));
+		}
+	}
+	else
+	{
+		PRINT_STRING(FString(TEXT("세션 생선 실패!")));
+	}
+}
+
+void ATPSMultiCharacter::OnFindSessionsComplete(bool bWasSuccessful)
+{
+	if (!mOnlineSessionInterface.IsValid())
+	{
+		return;
+	}
+
+	for (auto& result : mSessionSearch->SearchResults)
+	{
+		FString id = result.GetSessionIdStr();
+		FString user = result.Session.OwningUserName;
+		FString matchType;
+		result.Session.SessionSettings.Get(FName("MatchType"), matchType);
+		PRINT_STRING(FString::Printf(TEXT("Id: %s, User: %s"), *id, *user));
+		if (matchType == FString("FreeForAll"))
+		{
+			PRINT_STRING(FString::Printf(TEXT("Joining Match Type: %s"), *matchType));
+
+			mOnlineSessionInterface->AddOnJoinSessionCompleteDelegate_Handle(JoinSessionCompleteDelegate);
+
+			const ULocalPlayer* localPlayer = GetWorld()->GetFirstLocalPlayerFromController();
+			mOnlineSessionInterface->JoinSession(*localPlayer->GetPreferredUniqueNetId(), NAME_GameSession, result);
+		}
+	}
+}
+
+void ATPSMultiCharacter::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result)
+{
+	if (!mOnlineSessionInterface.IsValid())
+	{
+		return;
+	}
+	FString address;
+	if (mOnlineSessionInterface->GetResolvedConnectString(NAME_GameSession, address))
+	{
+		PRINT_STRING(FString::Printf(TEXT("Connect string: %s"), *address));
+
+		APlayerController* playerController = GetGameInstance()->GetFirstLocalPlayerController();
+		if (playerController)
+		{
+			playerController->ClientTravel(address, ETravelType::TRAVEL_Absolute);
+		}
 	}
 }
