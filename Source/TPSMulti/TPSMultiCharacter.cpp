@@ -57,7 +57,7 @@ ATPSMultiCharacter::ATPSMultiCharacter()
 	if(onlineSubsystem)
 	{
 		mOnlineSessionInterface=onlineSubsystem->GetSessionInterface();
-		PRINT_STRING(FString::Printf(TEXT("서브시스템 찾음 %s"), *onlineSubsystem->GetSubsystemName().ToString()));
+		//PRINT_STRING(FString::Printf(TEXT("서브시스템 찾음 %s"), *onlineSubsystem->GetSubsystemName().ToString()));
 	}
 }
 

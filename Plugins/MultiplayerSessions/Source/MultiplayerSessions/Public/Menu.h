@@ -9,26 +9,30 @@
 class UButton;
 class UMultiplayerSessionsSubsystem;
 
-UCLASS()
+UCLASS(Abstract)
 class MULTIPLAYERSESSIONS_API UMenu : public UUserWidget
 {
 	GENERATED_BODY()
 protected:
-	virtual bool Initialize() override;
+	virtual void NativeOnInitialized() override;
 	virtual void NativeDestruct() override;
 
 private:
 	UPROPERTY(meta = (BindWidget))
-	UButton* HostButton;
+	TObjectPtr<UButton> HostButton;
 
 	UPROPERTY(meta = (BindWidget))
-	UButton* JoinButton;
+	TObjectPtr<UButton> JoinButton;
 
 	// The subsystem designed to handle all online session functionality
-	UMultiplayerSessionsSubsystem* MultiplayerSessionsSubsystem;
+	TObjectPtr<UMultiplayerSessionsSubsystem> MultiplayerSessionsSubsystem;
 
+protected:
+	UPROPERTY(BlueprintReadWrite, Category = "Variable")
 	int32 NumPublicConnections{ 4 };
+	UPROPERTY(BlueprintReadWrite, Category = "Variable")
 	FString MatchType{ TEXT("FreeForAll") };
+	UPROPERTY(BlueprintReadWrite, Category = "Variable")
 	FString PathToLobby{ TEXT("") };
 
 private:
