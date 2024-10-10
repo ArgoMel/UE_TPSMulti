@@ -278,10 +278,10 @@ private:
 	void StartDissolve();
 
 protected:
-	void MoveForward(float Value);
-	void MoveRight(float Value);
-	void Turn(float Value);
-	void LookUp(float Value);
+	UFUNCTION(BlueprintCallable, Category = "Input")
+	void Move(FVector2D Value);
+	UFUNCTION(BlueprintCallable, Category = "Input")
+	void LookAround(FVector2D Value);
 	void EquipButtonPressed();
 	void CrouchButtonPressed();
 	void ReloadButtonPressed();

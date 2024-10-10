@@ -235,20 +235,24 @@ void ABaseCharacter::StartDissolve()
 {
 }
 
-void ABaseCharacter::MoveForward(float Value)
+void ABaseCharacter::Move(FVector2D Value)
 {
+	if (!Controller||
+		Value.IsZero())
+	{
+		return;
+	}
+	const FRotator yawRot(0.f, Controller->GetControlRotation().Yaw, 0.f);
+	const FVector dirX = FRotationMatrix(yawRot).GetUnitAxis(EAxis::X);
+	const FVector dirY = FRotationMatrix(yawRot).GetUnitAxis(EAxis::Y);
+	AddMovementInput(dirX, Value.X);
+	AddMovementInput(dirY, Value.Y);
 }
 
-void ABaseCharacter::MoveRight(float Value)
+void ABaseCharacter::LookAround(FVector2D Value)
 {
-}
-
-void ABaseCharacter::Turn(float Value)
-{
-}
-
-void ABaseCharacter::LookUp(float Value)
-{
+	AddControllerYawInput(Value.X);
+	AddControllerPitchInput(-Value.Y);
 }
 
 void ABaseCharacter::EquipButtonPressed()
