@@ -199,7 +199,7 @@ UObject* UVmdFactory::FactoryCreateBinary
 注意：新規Asset生成はIKなど未対応の為非推奨。追加Morphのみ対応。"
 			)
 			);
-		FMessageDialog::Open(EAppMsgType::Ok, MessageDbg, &TitleStr);
+		FMessageDialog::Open(EAppMsgType::Ok, MessageDbg, TitleStr);
 	}
 	/***************************************
 	* VMD取り込み時の警告表示
@@ -221,7 +221,7 @@ InportOption画面にて指定することで取り込むことが可能です�
 			)
 			, FText::FromString(vmdMotionInfo.ModelName)
 			);
-		FMessageDialog::Open(EAppMsgType::Ok, MessageDbg, &TitleStr);
+		FMessageDialog::Open(EAppMsgType::Ok, MessageDbg, TitleStr);
 	}
 	/////////////////////////////////////
 	// factory animation asset from vmd data.
@@ -285,7 +285,7 @@ Retry ImportOption!"
 						)
 							, FText::FromString(vmdMotionInfo.ModelName)
 						);
-					FMessageDialog::Open(EAppMsgType::Ok, MessageDbg, &TitleStr);
+					FMessageDialog::Open(EAppMsgType::Ok, MessageDbg, TitleStr);
 				}
 				/* もう一回させる*/
 				ImportOptions
@@ -813,11 +813,11 @@ bool UVmdFactory::ImportMorphCurveToAnimSequence(
 		/***********************************************************************************/
 
 #else
-		if (vmdFaceTrackPtr->keyList.Num() > 1) {
-			FSmartName NewName;
-			Skeleton->AddSmartNameAndModify(USkeleton::AnimCurveMappingName, Name, NewName);
+		if (vmdFaceTrackPtr->keyList.Num() > 1) 
+		{
+			Skeleton->AddCurveMetaData(Name);
 
-			FAnimationCurveIdentifier CurveId(NewName, ERawCurveTrackTypes::RCT_Float);
+			FAnimationCurveIdentifier CurveId(Name, ERawCurveTrackTypes::RCT_Float);
 			adc.AddCurve(CurveId);
 
 			const FFloatCurve* NewCurve = DestSeq->GetDataModel()->FindFloatCurve(CurveId);

@@ -1182,7 +1182,7 @@ void UPmxFactory::ImportMorphTargetsInternal(
 	if (BaseSkelMesh->GetImportedModel() && BaseSkelMesh->GetImportedModel()->LODModels.IsValidIndex(LODIndex))
 	{
 		//If we can build the skeletal mesh there is no need to build the morph target now, all the necessary build morph target data was copied before.
-		if (!BaseSkelMesh->IsLODImportedDataBuildAvailable(LODIndex))
+		if (!BaseSkelMesh->HasMeshDescription(LODIndex))
 		{
 			FOverlappingThresholds hd;
 			//Build MorphTargets
@@ -1450,7 +1450,7 @@ void UPmxFactory::ImportFbxMorphTarget(
 			Filename,
 			LODIndex, ImportData
 		);
-		BaseSkelMesh->SaveLODImportedData(LODIndex,ImportData);
+		BaseSkelMesh->CommitMeshDescription(LODIndex);
 	}
 }
 

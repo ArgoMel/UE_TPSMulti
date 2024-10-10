@@ -540,7 +540,7 @@ USkeletalMesh* UPmxFactory::ImportSkeletalMesh(
 	if (true /*!FbxShapeArray*/)
 	{
 		//UObject* ExistingObject = StaticFindObjectFast(UObject::StaticClass(), InParent, *Name.ToString(), false, false, RF_PendingKill);//~UE4.10
-		UObject* ExistingObject = StaticFindObjectFast(UObject::StaticClass(), InParent, *Name.ToString(), false, false, EObjectFlags::RF_NoFlags, EInternalObjectFlags::Garbage);//UE4.11~
+		UObject* ExistingObject = StaticFindObjectFast(UObject::StaticClass(), InParent, *Name.ToString(), false, EObjectFlags::RF_NoFlags, EInternalObjectFlags::Garbage);//UE4.11~
 		USkeletalMesh* ExistingSkelMesh = Cast<USkeletalMesh>(ExistingObject);
 
 		if (ExistingSkelMesh)
@@ -563,7 +563,7 @@ USkeletalMesh* UPmxFactory::ImportSkeletalMesh(
 	bool isSK_ = false;
 	if (0 /*!FbxShapeArray*/)
 	{
-		UObject* ExistingObject = StaticFindObjectFast(UObject::StaticClass(), InParent, *(L"SK_" + Name.ToString()), false, false, EObjectFlags::RF_NoFlags, EInternalObjectFlags::Garbage);//UE4.11~
+		UObject* ExistingObject = StaticFindObjectFast(UObject::StaticClass(), InParent, *(L"SK_" + Name.ToString()), false,  EObjectFlags::RF_NoFlags, EInternalObjectFlags::Garbage);//UE4.11~
 		USkeletalMesh* ExistingSkelMesh = Cast<USkeletalMesh>(ExistingObject);
 
 		if (ExistingSkelMesh)
@@ -750,8 +750,7 @@ USkeletalMesh* UPmxFactory::ImportSkeletalMesh(
 		const int32 ImportLODModelIndex = 0;
 		FSkeletalMeshLODModel& LODModel = ImportedResource->LODModels[ImportLODModelIndex];
 
-		SkeletalMesh->SaveLODImportedData(0, *SkelMeshImportDataPtr);
-
+		SkeletalMesh->CommitMeshDescription(0);
 		{
 			//We reimport both
 			SkeletalMesh->SetLODImportedDataVersions(ImportLODModelIndex, ESkeletalMeshGeoImportVersions::LatestVersion, ESkeletalMeshSkinningImportVersions::LatestVersion);

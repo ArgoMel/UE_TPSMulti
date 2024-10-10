@@ -23,7 +23,7 @@ namespace UnrealBuildTool.Rules
 		
 		public IM4U(ReadOnlyTargetRules Target) : base(Target)
 		{
-			string LibEHWinSourcePath = ThirdPartyPath + "LibEncodeHelperWin/";
+            string LibEHWinSourcePath = ThirdPartyPath + "LibEncodeHelperWin/";
 
 			string LibEHWinIncPath = LibEHWinSourcePath + "LibEncodeHelperWin/";
 			PublicSystemIncludePaths.Add(LibEHWinIncPath);
@@ -64,15 +64,6 @@ namespace UnrealBuildTool.Rules
 
 			string LibGLMPath = Path.Combine(ThirdPartyPath, "glm");
 
-            PublicIncludePaths.AddRange(
-                new string[] {
-					// ... add public include paths required here ...
-					"ControlRig/Public",
-                    "ControlRigDeveloper/Public",
-                    "ControlRigEditor/Public"
-                }
-				);
-
 			PrivateIncludePaths.AddRange(
                 new string[] {
                     "IM4U/Private",
@@ -81,34 +72,31 @@ namespace UnrealBuildTool.Rules
 				}
                 );
 
-			PublicDependencyModuleNames.AddRange(
-				new string[]
-				{
+			PublicDependencyModuleNames.AddRange(new string[]
+			{
+				"Core",
+				"CoreUObject",
+				"Engine", 
+				"InputCore", 
+				"UnrealEd",
+				"AssetTools",
+				"Slate" ,
+				"SlateCore",
+				"RawMesh" ,
+				"MessageLog",
+				"MainFrame",
+				"PropertyEditor",
+                "RHI",
+                "RenderCore",
+                "ContentBrowser",
+				"AnimationDataController",
 
-
-					"Core",
-					"CoreUObject",
-					"Engine", 
-					"InputCore", 
-					"UnrealEd",
-					"AssetTools",
-					"Slate" ,
-					"SlateCore",
-					"RawMesh" ,
-					"MessageLog",
-					"MainFrame",
-					"PropertyEditor",
-                    "RHI",
-                    "RenderCore",
-                    "ContentBrowser",
-					"AnimationDataController",
-
-                    "PhysicsUtilities","SkeletalMeshUtilitiesCommon",
-                    "ControlRig",
-                    "ControlRigEditor","ControlRigDeveloper",
-					// ... add other public dependencies that you statically link with here ...
-				}
-				);
+                "PhysicsUtilities",
+				"SkeletalMeshUtilitiesCommon",
+                //"ControlRig",
+                //"ControlRigEditor",
+				//"ControlRigDeveloper",
+			});
 
 			PrivateDependencyModuleNames.AddRange(
 				new string[]
@@ -126,6 +114,13 @@ namespace UnrealBuildTool.Rules
 					// ... add any modules that your module loads dynamically here ...
 				}
 				);
-		}
+
+            PublicIncludePaths.AddRange(new string[] 
+			{
+				//"ControlRig/Public",
+                //"ControlRigDeveloper/Public",
+                //"ControlRigEditor/Public"
+			});
+        }
 	}
 }
