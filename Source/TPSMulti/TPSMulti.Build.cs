@@ -15,7 +15,9 @@ public class TPSMulti : ModuleRules
 			, "Engine"
 			, "InputCore"
 			, "EnhancedInput" 
-			, "OnlineSubsystemSteam" 
+			, "Niagara"
+			, "MultiplayerSessions"
+            , "OnlineSubsystemSteam" 
 			, "OnlineSubsystem" 
 		});
 	}
