@@ -19,6 +19,7 @@ public class TPSMulti : ModuleRules
 			, "MultiplayerSessions"
             , "OnlineSubsystemSteam" 
 			, "OnlineSubsystem" 
+			, "UMG" 
 		});
 	}
 }
