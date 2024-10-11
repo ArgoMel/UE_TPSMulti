@@ -41,22 +41,27 @@ struct FMyPluginStructTEST
 	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY(EditAnywhere, Category = MyPluginStructTEST)
-		FString FormatTYPE;
+	FString FormatTYPE;
 
 	UPROPERTY(EditAnywhere, Category = MyPluginStructTEST)
-		float FormatVersion;
+	float FormatVersion;
 
 	UPROPERTY(EditAnywhere, Category = MyPluginStructTEST)
-		FString ModelName;
+	FString ModelName;
 
 	UPROPERTY(EditAnywhere, Category = MyPluginStructTEST)
-		FString ModelNameEng;
+	FString ModelNameEng;
 
 	UPROPERTY(EditAnywhere, Category = MyPluginStructTEST)
-		FString ModelComment;
+	FString ModelComment;
 
 	UPROPERTY(EditAnywhere, Category = MyPluginStructTEST)
-		FString ModelCommentEng;
+	FString ModelCommentEng;
+
+	FMyPluginStructTEST()
+	{
+		FormatVersion = 0.f;
+	}
 };
 
 /**

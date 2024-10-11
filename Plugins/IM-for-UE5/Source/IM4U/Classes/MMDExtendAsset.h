@@ -43,6 +43,8 @@ struct FMMD_IKLINK
 	{
 		BoneIndex = -1;
 		RotLockFlag = 0;
+		RotLockMin = FVector::ZeroVector;
+		RotLockMax = FVector::ZeroVector;
 	};
 };
 

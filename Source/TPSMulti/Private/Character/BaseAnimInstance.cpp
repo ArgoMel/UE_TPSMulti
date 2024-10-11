@@ -24,4 +24,9 @@ void UBaseAnimInstance::NativeUpdateAnimation(float DeltaTime)
 	{
 		return;
 	}
+
+	FVector velocity = BaseCharacter->GetVelocity();
+	Speed = velocity.Size2D();
+	bIsInAir = BaseCharacter->GetCharacterMovement()->IsFalling();
+	bIsAccelerating = BaseCharacter->GetCharacterMovement()->GetCurrentAcceleration().Size()>0.f;
 }
