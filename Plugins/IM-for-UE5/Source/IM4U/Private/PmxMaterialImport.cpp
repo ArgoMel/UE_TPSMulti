@@ -1137,7 +1137,7 @@ UMaterialInterface * UPmxMaterialImport::DuplicateBaseMaterial(
 	FString BaseMatSimpleName;
 	{
 		BaseMatSimpleName = BaseMatOriginal->GetName().Replace(TEXT("M_MMD_MatBase_"), TEXT(""), ESearchCase::CaseSensitive);
-		FString BaseMatName = FString::Printf(TEXT("M_%s_Base_%s"),*ParentObjName, *BaseMatSimpleName);
+		FString BaseMatName = FString::Printf(TEXT("%s_%s"),*BaseMatSimpleName, *ParentObjName);
 
 		// The material could already exist in the project
 		FName ObjectPath = *(TargetPathName / BaseMatName + TEXT(".") + BaseMatName);
