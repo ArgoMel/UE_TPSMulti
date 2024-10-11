@@ -1317,10 +1317,12 @@ UMaterialInterface* UPmxMaterialImport::CreateMaterialInst_Masked(
 
 		return nullptr;
 	}
+	/* Argo 이거 있으면 투명해짐
 	if (PmxMaterial.SphereMode > 0 && !(oFlag&0x1000)) {
 		pUMIC->BasePropertyOverrides.BlendMode = BLEND_Additive;
 		pUMIC->BasePropertyOverrides.bOverride_BlendMode = true;
 	}
+	*/
 	//Set Param
 	FStaticParameterSet StaticParams;
 
