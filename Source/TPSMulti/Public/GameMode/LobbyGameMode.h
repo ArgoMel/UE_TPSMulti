@@ -9,5 +9,6 @@ UCLASS()
 class TPSMULTI_API ALobbyGameMode : public AGameMode
 {
 	GENERATED_BODY()
-	
+protected:
+	virtual void PostLogin(APlayerController* NewPlayer) override;
 };

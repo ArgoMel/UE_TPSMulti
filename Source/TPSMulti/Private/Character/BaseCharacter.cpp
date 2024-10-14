@@ -57,7 +57,7 @@ ABaseCharacter::ABaseCharacter()
 
 	//Combat = CreateDefaultSubobject<UCombatComponent>(TEXT("Combat"));
 	//Combat->SetIsReplicated(true);
-	//
+	
 	//Buff = CreateDefaultSubobject<UBuffComponent>(TEXT("BuffComponent"));
 	//Buff->SetIsReplicated(true);
 
