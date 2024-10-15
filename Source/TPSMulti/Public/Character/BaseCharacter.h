@@ -13,6 +13,7 @@
 class USpringArmComponent;
 class UCameraComponent;
 class UWidgetComponent;
+class AWeapon;
 class UAnimMontage;
 class USoundCue;
 class UNiagaraSystem;
@@ -48,8 +49,8 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UWidgetComponent* OverheadWidget;
 
-	//UPROPERTY(ReplicatedUsing = OnRep_OverlappingWeapon)
-	//class AWeapon* OverlappingWeapon;
+	UPROPERTY(ReplicatedUsing = OnRep_OverlappingWeapon)
+	AWeapon* OverlappingWeapon;
 
 	// Blaster components
 	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
@@ -178,8 +179,8 @@ private:
 	UStaticMeshComponent* AttachedGrenade;
 
 	// Default weapon
-	//UPROPERTY(EditAnywhere)
-	//TSubclassOf<AWeapon> DefaultWeaponClass;
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<AWeapon> DefaultWeaponClass;
 
 	//UPROPERTY()
 	//class ABlasterGameMode* BlasterGameMode;
@@ -252,8 +253,8 @@ public:
 	FOnLeftGame OnLeftGame;
 
 private:
-	//UFUNCTION()
-	//void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
+	UFUNCTION()
+	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
 
 	UFUNCTION(Server, Reliable)
 	void ServerEquipButtonPressed();
@@ -295,7 +296,7 @@ protected:
 	void FireButtonReleased();
 	void PlayHitReactMontage();
 	void GrenadeButtonPressed();
-	//void DropOrDestroyWeapon(AWeapon* Weapon);
+	void DropOrDestroyWeapon(AWeapon* Weapon);
 	void DropOrDestroyWeapons();
 	void SetSpawnPoint();
 	void OnPlayerStateInitialized();
@@ -342,12 +343,12 @@ public:
 
 	//void SetTeamColor(ETeam Team);
 
-	//void SetOverlappingWeapon(AWeapon* Weapon);
+	void SetOverlappingWeapon(AWeapon* Weapon);
 	bool IsWeaponEquipped();
 	bool IsAiming();
 	FORCEINLINE float GetAO_Yaw() const { return AO_Yaw; }
 	FORCEINLINE float GetAO_Pitch() const { return AO_Pitch; }
-	//AWeapon* GetEquippedWeapon();
+	AWeapon* GetEquippedWeapon();
 	//FORCEINLINE ETurningInPlace GetTurningInPlace() const { return TurningInPlace; }
 	FVector GetHitTarget() const;
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }

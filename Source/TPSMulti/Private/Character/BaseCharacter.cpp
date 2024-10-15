@@ -161,6 +161,7 @@ ABaseCharacter::ABaseCharacter()
 void ABaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(ThisClass, OverlappingWeapon);
 }
 
 void ABaseCharacter::PostInitializeComponents()
@@ -196,6 +197,10 @@ void ABaseCharacter::OnRep_ReplicatedMovement()
 void ABaseCharacter::Destroyed()
 {
 	Super::Destroyed();
+}
+
+void ABaseCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
+{
 }
 
 void ABaseCharacter::ServerEquipButtonPressed_Implementation()
@@ -303,6 +308,10 @@ void ABaseCharacter::GrenadeButtonPressed()
 {
 }
 
+void ABaseCharacter::DropOrDestroyWeapon(AWeapon* Weapon)
+{
+}
+
 void ABaseCharacter::DropOrDestroyWeapons()
 {
 }
@@ -383,6 +392,11 @@ void ABaseCharacter::MulticastLostTheLead_Implementation()
 {
 }
 
+void ABaseCharacter::SetOverlappingWeapon(AWeapon* Weapon)
+{
+	OverlappingWeapon = Weapon;
+}
+
 bool ABaseCharacter::IsWeaponEquipped()
 {
 	return false;
@@ -391,6 +405,11 @@ bool ABaseCharacter::IsWeaponEquipped()
 bool ABaseCharacter::IsAiming()
 {
 	return false;
+}
+
+AWeapon* ABaseCharacter::GetEquippedWeapon()
+{
+	return nullptr;
 }
 
 FVector ABaseCharacter::GetHitTarget() const

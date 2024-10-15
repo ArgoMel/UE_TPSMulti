@@ -1,20 +1,68 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Weapon/Weapon.h"
+#include "Character/BaseCharacter.h"
+//#include "Casing.h"
+//#include "Blaster/PlayerController/BlasterPlayerController.h"
+//#include "Blaster/BlasterComponents/CombatComponent.h"
+#include "Components/SphereComponent.h"
+#include "Components/WidgetComponent.h"
+#include "Net/UnrealNetwork.h"
+#include "Animation/AnimationAsset.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Engine/SkeletalMeshSocket.h"
+#include "Kismet/KismetMathLibrary.h"
 
 AWeapon::AWeapon()
 {
 	PrimaryActorTick.bCanEverTick = false;
+	bReplicates = true;
+	SetReplicateMovement(true);
+
+	WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
+	SetRootComponent(WeaponMesh);
+	WeaponMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
+	WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	AreaSphere = CreateDefaultSubobject<USphereComponent>(TEXT("AreaSphere"));
+	AreaSphere->SetupAttachment(RootComponent);
+	AreaSphere->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+	AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	PickupWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("PickupWidget"));
+	PickupWidget->SetupAttachment(RootComponent);
+}
+
+void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AWeapon, WeaponState);
+	DOREPLIFETIME_CONDITION(AWeapon, bUseServerSideRewind, COND_OwnerOnly);
 }
 
 void AWeapon::BeginPlay()
 {
 	Super::BeginPlay();
+	AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
+	AreaSphere->OnComponentBeginOverlap.AddDynamic(this, &AWeapon::OnSphereOverlap);
+	AreaSphere->OnComponentEndOverlap.AddDynamic(this, &AWeapon::OnSphereEndOverlap);
+
+	if (PickupWidget)
+	{
+		PickupWidget->SetVisibility(false);
+	}
 }
 
 void AWeapon::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+}
+
+void AWeapon::OnRep_Owner()
+{
+	Super::OnRep_Owner();
 }
 
 void AWeapon::OnRep_WeaponState()
@@ -51,10 +99,31 @@ void AWeapon::OnEquippedSecondary()
 
 void AWeapon::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	ABaseCharacter* baseCharacter = Cast<ABaseCharacter>(OtherActor);
+
+	if (baseCharacter)
+	{
+		//if (WeaponType == EWeaponType::EWT_Flag && baseCharacter->GetTeam() == Team) return;
+		if (baseCharacter->IsHoldingTheFlag()) 
+		{
+			return;
+		}
+		baseCharacter->SetOverlappingWeapon(this);
+	}
 }
 
 void AWeapon::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
+	ABaseCharacter* baseCharacter = Cast<ABaseCharacter>(OtherActor);
+	if (baseCharacter)
+	{
+		//if (WeaponType == EWeaponType::EWT_Flag && baseCharacter->GetTeam() == Team) return;
+		if (baseCharacter->IsHoldingTheFlag())
+		{
+			return;
+		}
+		baseCharacter->SetOverlappingWeapon(nullptr);
+	}
 }
 
 void AWeapon::OnPingTooHigh(bool bPingTooHigh)
