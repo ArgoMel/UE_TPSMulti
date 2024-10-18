@@ -7,6 +7,7 @@
 #include "BaseAnimInstance.generated.h"
 
 class ABaseCharacter;
+class AWeapon;
 
 UCLASS()
 class TPSMULTI_API UBaseAnimInstance : public UAnimInstance
@@ -32,7 +33,7 @@ private:
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	bool bWeaponEquipped;
 
-	//class AWeapon* EquippedWeapon;
+	AWeapon* EquippedWeapon;
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	bool bIsCrouched;

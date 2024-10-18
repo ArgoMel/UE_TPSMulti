@@ -217,6 +217,10 @@ void ABaseCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 
 void ABaseCharacter::ServerEquipButtonPressed_Implementation()
 {
+	if (Combat)
+	{
+		Combat->EquipWeapon(OverlappingWeapon);
+	}
 }
 
 void ABaseCharacter::TurnInPlace(float DeltaTime)
@@ -274,15 +278,29 @@ void ABaseCharacter::LookAround(FVector2D Value)
 
 void ABaseCharacter::EquipButtonPressed()
 {
-	if(Combat&&
-		HasAuthority())
+	if(Combat)
 	{
-		Combat->EquipWeapon(OverlappingWeapon);
+		if (HasAuthority())
+		{
+			Combat->EquipWeapon(OverlappingWeapon);
+		}
+		else
+		{
+			ServerEquipButtonPressed();
+		}
 	}
 }
 
 void ABaseCharacter::CrouchButtonPressed()
 {
+	if(bIsCrouched)
+	{
+		UnCrouch();
+	}
+	else
+	{
+		Crouch();
+	}
 }
 
 void ABaseCharacter::ReloadButtonPressed()
@@ -427,7 +445,7 @@ void ABaseCharacter::SetOverlappingWeapon(AWeapon* Weapon)
 
 bool ABaseCharacter::IsWeaponEquipped()
 {
-	return false;
+	return Combat&&Combat->EquippedWeapon;
 }
 
 bool ABaseCharacter::IsAiming()

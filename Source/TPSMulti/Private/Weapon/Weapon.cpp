@@ -67,6 +67,21 @@ void AWeapon::OnRep_Owner()
 
 void AWeapon::OnRep_WeaponState()
 {
+	switch (WeaponState)
+	{
+	case EWeaponState::EWS_Initial:
+		break;
+	case EWeaponState::EWS_Equipped:
+		ShowPickupWidget(false);
+		break;
+	case EWeaponState::EWS_EquippedSecondary:
+		break;
+	case EWeaponState::EWS_Dropped:
+		break;
+	case EWeaponState::EWS_MAX:
+	default:
+		break;
+	}
 }
 
 void AWeapon::ClientUpdateAmmo_Implementation(int32 ServerAmmo)
@@ -166,6 +181,22 @@ void AWeapon::EnableCustomDepth(bool bEnable)
 void AWeapon::SetWeaponState(EWeaponState State)
 {
 	WeaponState = State;
+	switch (WeaponState)
+	{
+	case EWeaponState::EWS_Initial:
+		break;
+	case EWeaponState::EWS_Equipped:
+		ShowPickupWidget(false);
+		AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		break;
+	case EWeaponState::EWS_EquippedSecondary:
+		break;
+	case EWeaponState::EWS_Dropped:
+		break;
+	case EWeaponState::EWS_MAX:
+	default:
+		break;
+	}
 }
 
 bool AWeapon::IsEmpty()
