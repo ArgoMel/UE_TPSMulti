@@ -136,6 +136,10 @@ void AWeapon::SetHUDAmmo()
 
 void AWeapon::ShowPickupWidget(bool bShowWidget)
 {
+	if (PickupWidget)
+	{
+		PickupWidget->SetVisibility(bShowWidget);
+	}
 }
 
 void AWeapon::Fire(const FVector& HitTarget)
@@ -161,6 +165,7 @@ void AWeapon::EnableCustomDepth(bool bEnable)
 
 void AWeapon::SetWeaponState(EWeaponState State)
 {
+	WeaponState = State;
 }
 
 bool AWeapon::IsEmpty()

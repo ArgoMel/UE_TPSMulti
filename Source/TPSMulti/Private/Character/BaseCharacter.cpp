@@ -1,8 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Character/BaseCharacter.h"
-//#include "Blaster/Weapon/Weapon.h"
-//#include "Blaster/BlasterComponents/CombatComponent.h"
+#include "Weapon/Weapon.h"
+#include "Component/CombatComponent.h"
 //#include "Blaster/BlasterComponents/BuffComponent.h"
 //#include "BlasterAnimInstance.h"
 //#include "Blaster/Blaster.h"
@@ -55,8 +55,8 @@ ABaseCharacter::ABaseCharacter()
 	OverheadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverheadWidget"));
 	OverheadWidget->SetupAttachment(RootComponent);
 
-	//Combat = CreateDefaultSubobject<UCombatComponent>(TEXT("Combat"));
-	//Combat->SetIsReplicated(true);
+	Combat = CreateDefaultSubobject<UCombatComponent>(TEXT("Combat"));
+	Combat->SetIsReplicated(true);
 	
 	//Buff = CreateDefaultSubobject<UBuffComponent>(TEXT("BuffComponent"));
 	//Buff->SetIsReplicated(true);
@@ -161,12 +161,16 @@ ABaseCharacter::ABaseCharacter()
 void ABaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(ThisClass, OverlappingWeapon);
+	DOREPLIFETIME_CONDITION(ThisClass, OverlappingWeapon,COND_OwnerOnly);
 }
 
 void ABaseCharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
+	if(Combat)
+	{
+		Combat->Character = this;
+	}
 }
 
 void ABaseCharacter::BeginPlay()
@@ -201,6 +205,14 @@ void ABaseCharacter::Destroyed()
 
 void ABaseCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 {
+	if (OverlappingWeapon)
+	{
+		OverlappingWeapon->ShowPickupWidget(true);
+	}
+	if(LastWeapon)
+	{
+		LastWeapon->ShowPickupWidget(false);
+	}
 }
 
 void ABaseCharacter::ServerEquipButtonPressed_Implementation()
@@ -262,6 +274,11 @@ void ABaseCharacter::LookAround(FVector2D Value)
 
 void ABaseCharacter::EquipButtonPressed()
 {
+	if(Combat&&
+		HasAuthority())
+	{
+		Combat->EquipWeapon(OverlappingWeapon);
+	}
 }
 
 void ABaseCharacter::CrouchButtonPressed()
@@ -394,7 +411,18 @@ void ABaseCharacter::MulticastLostTheLead_Implementation()
 
 void ABaseCharacter::SetOverlappingWeapon(AWeapon* Weapon)
 {
+	if (OverlappingWeapon)
+	{
+		OverlappingWeapon->ShowPickupWidget(false);
+	}
 	OverlappingWeapon = Weapon;
+	if(IsLocallyControlled())
+	{
+		if (OverlappingWeapon)
+		{
+			OverlappingWeapon->ShowPickupWidget(true);
+		}
+	}
 }
 
 bool ABaseCharacter::IsWeaponEquipped()

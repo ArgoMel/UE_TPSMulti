@@ -3,6 +3,8 @@
 #pragma once
 #include "CoreMinimal.h"
 
+#define SOCKET_RIGHTHAND FName(TEXT("RightHandSocket"))
+
 #define PRINT_STRING(MSG)\
 if(GEngine)\
 {\

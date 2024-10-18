@@ -14,6 +14,7 @@ class USpringArmComponent;
 class UCameraComponent;
 class UWidgetComponent;
 class AWeapon;
+class UCombatComponent;
 class UAnimMontage;
 class USoundCue;
 class UNiagaraSystem;
@@ -53,9 +54,9 @@ private:
 	AWeapon* OverlappingWeapon;
 
 	// Blaster components
-	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	//class UCombatComponent* Combat;
-	//
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UCombatComponent* Combat;
+	
 	//UPROPERTY(VisibleAnywhere)
 	//class UBuffComponent* Buff;
 	//
@@ -283,10 +284,15 @@ protected:
 	void Move(FVector2D Value);
 	UFUNCTION(BlueprintCallable, Category = "Input")
 	void LookAround(FVector2D Value);
+	UFUNCTION(BlueprintCallable, Category = "Input")
 	void EquipButtonPressed();
+	UFUNCTION(BlueprintCallable, Category = "Input")
 	void CrouchButtonPressed();
+	UFUNCTION(BlueprintCallable, Category = "Input")
 	void ReloadButtonPressed();
+	UFUNCTION(BlueprintCallable, Category = "Input")
 	void AimButtonPressed();
+	UFUNCTION(BlueprintCallable, Category = "Input")
 	void AimButtonReleased();
 	void AimOffset(float DeltaTime);
 	void CalculateAO_Pitch();
@@ -361,7 +367,7 @@ public:
 	FORCEINLINE void SetShield(float Amount) { Shield = Amount; }
 	FORCEINLINE float GetMaxShield() const { return MaxShield; }
 	//ECombatState GetCombatState() const;
-	//FORCEINLINE UCombatComponent* GetCombat() const { return Combat; }
+	FORCEINLINE UCombatComponent* GetCombat() const { return Combat; }
 	FORCEINLINE bool GetDisableGameplay() const { return bDisableGameplay; }
 	FORCEINLINE UAnimMontage* GetReloadMontage() const { return ReloadMontage; }
 	FORCEINLINE UStaticMeshComponent* GetAttachedGrenade() const { return AttachedGrenade; }
