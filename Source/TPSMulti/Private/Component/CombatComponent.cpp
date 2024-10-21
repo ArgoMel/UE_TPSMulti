@@ -110,6 +110,12 @@ void UCombatComponent::ServerSetAiming_Implementation(bool bIsAiming)
 
 void UCombatComponent::OnRep_EquippedWeapon()
 {
+	if(EquippedWeapon&&
+		Character)
+	{
+		Character->GetCharacterMovement()->bOrientRotationToMovement = false;
+		Character->bUseControllerRotationYaw = true;
+	}
 }
 
 void UCombatComponent::OnRep_SecondaryWeapon()
