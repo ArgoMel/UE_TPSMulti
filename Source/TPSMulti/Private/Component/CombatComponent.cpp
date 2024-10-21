@@ -254,6 +254,8 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 		handSocket->AttachActor(EquippedWeapon, Character->GetMesh());
 	}
 	EquippedWeapon->SetOwner(Character);
+	Character->GetCharacterMovement()->bOrientRotationToMovement = false;
+	Character->bUseControllerRotationYaw = true;
 }
 
 void UCombatComponent::SwapWeapons()
