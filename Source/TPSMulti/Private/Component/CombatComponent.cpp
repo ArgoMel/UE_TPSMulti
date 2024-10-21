@@ -99,10 +99,13 @@ void UCombatComponent::OnRep_HoldingTheFlag()
 
 void UCombatComponent::SetAiming(bool bIsAiming)
 {
+	bAiming = bIsAiming;
+	ServerSetAiming(bIsAiming);
 }
 
 void UCombatComponent::ServerSetAiming_Implementation(bool bIsAiming)
 {
+	bAiming = bIsAiming;
 }
 
 void UCombatComponent::OnRep_EquippedWeapon()

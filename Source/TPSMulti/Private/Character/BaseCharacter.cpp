@@ -309,10 +309,28 @@ void ABaseCharacter::ReloadButtonPressed()
 
 void ABaseCharacter::AimButtonPressed()
 {
+	if ((Combat && Combat->bHoldingTheFlag)||
+		bDisableGameplay)
+	{
+		return;
+	}
+	if (Combat)
+	{
+		Combat->SetAiming(true);
+	}
 }
 
 void ABaseCharacter::AimButtonReleased()
 {
+	if ((Combat && Combat->bHoldingTheFlag) ||
+		bDisableGameplay)
+	{
+		return;
+	}
+	if (Combat)
+	{
+		Combat->SetAiming(false);
+	}
 }
 
 void ABaseCharacter::AimOffset(float DeltaTime)
@@ -450,7 +468,7 @@ bool ABaseCharacter::IsWeaponEquipped()
 
 bool ABaseCharacter::IsAiming()
 {
-	return false;
+	return Combat&&Combat->bAiming;
 }
 
 AWeapon* ABaseCharacter::GetEquippedWeapon()
