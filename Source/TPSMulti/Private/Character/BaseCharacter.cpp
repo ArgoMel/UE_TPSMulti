@@ -181,6 +181,7 @@ void ABaseCharacter::BeginPlay()
 void ABaseCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	AimOffset(DeltaTime);
 }
 
 void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -335,6 +336,27 @@ void ABaseCharacter::AimButtonReleased()
 
 void ABaseCharacter::AimOffset(float DeltaTime)
 {
+	if(Combat&&!Combat->EquippedWeapon)
+	{
+		return;
+	}
+	FVector velocity = GetVelocity();
+	float speed = velocity.Size2D();
+	bool isInAir = GetCharacterMovement()->IsFalling();
+	if(speed==0.f&&!isInAir)
+	{
+		FRotator curAimRot= FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
+		FRotator deltaAimRot= UKismetMathLibrary::NormalizedDeltaRotator(curAimRot,StartingAimRotation);
+		AO_Yaw = deltaAimRot.Yaw;
+		bUseControllerRotationYaw = false;
+	}
+	if(speed>0.f||isInAir)
+	{
+		StartingAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
+		AO_Yaw = 0.f;
+		bUseControllerRotationYaw = true;
+	}
+	AO_Pitch=GetBaseAimRotation().Pitch;
 }
 
 void ABaseCharacter::CalculateAO_Pitch()
