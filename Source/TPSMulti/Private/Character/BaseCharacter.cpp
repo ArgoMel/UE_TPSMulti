@@ -5,7 +5,6 @@
 #include "Component/CombatComponent.h"
 //#include "Blaster/BlasterComponents/BuffComponent.h"
 //#include "BlasterAnimInstance.h"
-//#include "Blaster/Blaster.h"
 //#include "Blaster/PlayerController/BlasterPlayerController.h"
 //#include "Blaster/GameMode/BlasterGameMode.h"
 //#include "Blaster/PlayerState/BlasterPlayerState.h"
@@ -32,6 +31,10 @@ ABaseCharacter::ABaseCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	bUseControllerRotationYaw = false;
+	NetUpdateFrequency = 66.f;
+	MinNetUpdateFrequency = 33.f;
+
+	TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 
@@ -62,10 +65,6 @@ ABaseCharacter::ABaseCharacter()
 	//Buff->SetIsReplicated(true);
 
 	//LagCompensation = CreateDefaultSubobject<ULagCompensationComponent>(TEXT("LagCompensation"));
-
-	//TurningInPlace = ETurningInPlace::ETIP_NotTurning;
-	NetUpdateFrequency = 66.f;
-	MinNetUpdateFrequency = 33.f;
 
 	DissolveTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("DissolveTimelineComponent"));
 
@@ -162,6 +161,9 @@ void ABaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME_CONDITION(ThisClass, OverlappingWeapon,COND_OwnerOnly);
+	DOREPLIFETIME(ThisClass, Health);
+	DOREPLIFETIME(ThisClass, Shield);
+	DOREPLIFETIME(ThisClass, bDisableGameplay);
 }
 
 void ABaseCharacter::PostInitializeComponents()
@@ -191,7 +193,14 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 void ABaseCharacter::Jump()
 {
-	Super::Jump();
+	if(bIsCrouched)
+	{
+		UnCrouch();
+	}
+	else
+	{
+		Super::Jump();
+	}
 }
 
 void ABaseCharacter::OnRep_ReplicatedMovement()
@@ -226,6 +235,24 @@ void ABaseCharacter::ServerEquipButtonPressed_Implementation()
 
 void ABaseCharacter::TurnInPlace(float DeltaTime)
 {
+	if(AO_Yaw>90.f)
+	{
+		TurningInPlace = ETurningInPlace::ETIP_Right;
+	}
+	else if(AO_Yaw<-90.f)
+	{
+		TurningInPlace = ETurningInPlace::ETIP_Left;
+	}
+	if(TurningInPlace!=ETurningInPlace::ETIP_NotTurning)
+	{
+		InterpAO_Yaw = FMath::FInterpTo(InterpAO_Yaw,0.f,DeltaTime,4.f);
+		AO_Yaw = InterpAO_Yaw;
+		if(FMath::Abs(AO_Yaw)<15.f)
+		{
+			TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+			StartingAimRotation = FRotator(0.f,GetBaseAimRotation().Yaw,0.f);
+		}
+	}
 }
 
 void ABaseCharacter::HideCameraIfCharacterClose()
@@ -259,7 +286,8 @@ void ABaseCharacter::StartDissolve()
 
 void ABaseCharacter::Move(FVector2D Value)
 {
-	if (!Controller||
+	if (bDisableGameplay||
+		!Controller||
 		Value.IsZero())
 	{
 		return;
@@ -348,15 +376,28 @@ void ABaseCharacter::AimOffset(float DeltaTime)
 		FRotator curAimRot= FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
 		FRotator deltaAimRot= UKismetMathLibrary::NormalizedDeltaRotator(curAimRot,StartingAimRotation);
 		AO_Yaw = deltaAimRot.Yaw;
-		bUseControllerRotationYaw = false;
+		if(TurningInPlace==ETurningInPlace::ETIP_NotTurning)
+		{
+			InterpAO_Yaw = AO_Yaw;
+		}
+		bUseControllerRotationYaw = true;
+		TurnInPlace(DeltaTime);
 	}
 	if(speed>0.f||isInAir)
 	{
 		StartingAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
 		AO_Yaw = 0.f;
 		bUseControllerRotationYaw = true;
+		TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 	}
 	AO_Pitch=GetBaseAimRotation().Pitch;
+	if(AO_Pitch>90.f&&
+		!IsLocallyControlled())
+	{
+		FVector2D inRange(270.f,360.f);
+		FVector2D outRange(-90.f,0.f);
+		AO_Pitch = FMath::GetMappedRangeValueClamped(inRange,outRange,AO_Pitch);
+	}
 }
 
 void ABaseCharacter::CalculateAO_Pitch()
@@ -495,12 +536,21 @@ bool ABaseCharacter::IsAiming()
 
 AWeapon* ABaseCharacter::GetEquippedWeapon()
 {
-	return nullptr;
+	if(!Combat)
+	{
+		return nullptr;
+	}
+	return Combat->EquippedWeapon;
 }
 
 FVector ABaseCharacter::GetHitTarget() const
 {
 	return FVector();
+}
+
+ECombatState ABaseCharacter::GetCombatState() const
+{
+	return ECombatState();
 }
 
 bool ABaseCharacter::IsLocallyReloading()

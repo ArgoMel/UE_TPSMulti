@@ -1,9 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
-#include "CoreMinimal.h"
+#include <TPSMulti/TPSMulti.h>
 #include "Animation/AnimInstance.h"
-//#include "Blaster/BlasterTypes/TurningInPlace.h"
 #include "BaseAnimInstance.generated.h"
 
 class ABaseCharacter;
@@ -60,8 +59,8 @@ private:
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	FTransform LeftHandTransform;
 
-	//UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
-	//ETurningInPlace TurningInPlace;
+	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
+	ETurningInPlace TurningInPlace;
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	FRotator RightHandRotation;

@@ -3,7 +3,6 @@
 #include "Character/BaseAnimInstance.h"
 #include "Character/BaseCharacter.h"
 #include "Weapon/Weapon.h"
-#include <TPSMulti/TPSMulti.h>
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 //#include "Blaster/BlasterTypes/CombatState.h"
@@ -34,7 +33,7 @@ void UBaseAnimInstance::NativeUpdateAnimation(float DeltaTime)
 	EquippedWeapon = BaseCharacter->GetEquippedWeapon();
 	bIsCrouched = BaseCharacter->bIsCrouched;
 	bAiming = BaseCharacter->IsAiming();
-	//TurningInPlace = BaseCharacter->GetTurningInPlace();
+	TurningInPlace = BaseCharacter->GetTurningInPlace();
 	bRotateRootBone = BaseCharacter->ShouldRotateRootBone();
 	bElimmed = BaseCharacter->IsElimmed();
 	bHoldingTheFlag = BaseCharacter->IsHoldingTheFlag();
@@ -56,7 +55,8 @@ void UBaseAnimInstance::NativeUpdateAnimation(float DeltaTime)
 	AO_Yaw = BaseCharacter->GetAO_Yaw();
 	AO_Pitch = BaseCharacter->GetAO_Pitch();
 
-	if (bWeaponEquipped && EquippedWeapon && 
+	if (bWeaponEquipped && 
+		EquippedWeapon && 
 		EquippedWeapon->GetWeaponMesh() && 
 		BaseCharacter->GetMesh())
 	{
@@ -76,14 +76,14 @@ void UBaseAnimInstance::NativeUpdateAnimation(float DeltaTime)
 		}
 	}
 
-	//bUseFABRIK = BaseCharacter->GetCombatState() == ECombatState::ECS_Unoccupied;
-	//bool bFABRIKOverride = BlasterCharacter->IsLocallyControlled() &&
-	//	BlasterCharacter->GetCombatState() != ECombatState::ECS_ThrowingGrenade &&
-	//	BlasterCharacter->bFinishedSwapping;
-	//if (bFABRIKOverride)
-	//{
-	//	bUseFABRIK = !BlasterCharacter->IsLocallyReloading();
-	//}
-	//bUseAimOffsets = BlasterCharacter->GetCombatState() == ECombatState::ECS_Unoccupied && !BlasterCharacter->GetDisableGameplay();
-	//bTransformRightHand = BlasterCharacter->GetCombatState() == ECombatState::ECS_Unoccupied && !BlasterCharacter->GetDisableGameplay();
+	bUseFABRIK = BaseCharacter->GetCombatState() == ECombatState::ECS_Unoccupied;
+	bool bFABRIKOverride = BaseCharacter->IsLocallyControlled() &&
+		BaseCharacter->GetCombatState() != ECombatState::ECS_ThrowingGrenade &&
+		BaseCharacter->bFinishedSwapping;
+	if (bFABRIKOverride)
+	{
+		bUseFABRIK = !BaseCharacter->IsLocallyReloading();
+	}
+	bUseAimOffsets = BaseCharacter->GetCombatState() == ECombatState::ECS_Unoccupied && !BaseCharacter->GetDisableGameplay();
+	bTransformRightHand = BaseCharacter->GetCombatState() == ECombatState::ECS_Unoccupied && !BaseCharacter->GetDisableGameplay();
 }

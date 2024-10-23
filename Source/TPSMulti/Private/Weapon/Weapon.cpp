@@ -98,10 +98,29 @@ void AWeapon::SpendRound()
 
 void AWeapon::OnWeaponStateSet()
 {
+	switch (WeaponState)
+	{
+	case EWeaponState::EWS_Initial:
+		break;
+	case EWeaponState::EWS_Equipped:
+		OnEquipped();
+		break;
+	case EWeaponState::EWS_EquippedSecondary:
+		OnEquippedSecondary();
+		break;
+	case EWeaponState::EWS_Dropped:
+		OnDropped();
+		break;
+	case EWeaponState::EWS_MAX:
+	default:
+		break;
+	}
 }
 
 void AWeapon::OnEquipped()
 {
+	ShowPickupWidget(false);
+	AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void AWeapon::OnDropped()
@@ -181,22 +200,7 @@ void AWeapon::EnableCustomDepth(bool bEnable)
 void AWeapon::SetWeaponState(EWeaponState State)
 {
 	WeaponState = State;
-	switch (WeaponState)
-	{
-	case EWeaponState::EWS_Initial:
-		break;
-	case EWeaponState::EWS_Equipped:
-		ShowPickupWidget(false);
-		AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		break;
-	case EWeaponState::EWS_EquippedSecondary:
-		break;
-	case EWeaponState::EWS_Dropped:
-		break;
-	case EWeaponState::EWS_MAX:
-	default:
-		break;
-	}
+	OnWeaponStateSet();
 }
 
 bool AWeapon::IsEmpty()
