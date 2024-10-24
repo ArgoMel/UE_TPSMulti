@@ -17,9 +17,11 @@
 #include "Camera/CameraComponent.h"
 #include "Sound/SoundCue.h"
 
+constexpr float TraceLength = 80000.f;
+
 UCombatComponent::UCombatComponent()
 {
-	PrimaryComponentTick.bCanEverTick = false;
+	PrimaryComponentTick.bCanEverTick = true;
 
 	BaseWalkSpeed = 600.f;
 	AimWalkSpeed = 350.f;
@@ -49,6 +51,8 @@ void UCombatComponent::BeginPlay()
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	FHitResult hitResult;
+	TraceUnderCrosshairs(hitResult);
 }
 
 void UCombatComponent::OnRep_Aiming()
@@ -195,8 +199,7 @@ void UCombatComponent::MulticastFire_Implementation(const FVector_NetQuantize& T
 		bFireButtonPressed)
 	{
 		Character->PlayFireMontage(bAiming);
-		FVector hitTarget;
-		EquippedWeapon->Fire(hitTarget);
+		EquippedWeapon->Fire(HitTarget);
 	}
 }
 
@@ -215,6 +218,33 @@ void UCombatComponent::MulticastShotgunFire_Implementation(const TArray<FVector_
 
 void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 {
+	FVector2D viewportSize;
+	if(GEngine&&
+		GEngine->GameViewport)
+	{
+		GEngine->GameViewport->GetViewportSize(viewportSize);
+	}
+	FVector2D crosshairLoc(viewportSize.X/2.f, viewportSize.Y/2.f);
+	FVector crosshairWorldPos;
+	FVector crosshairWorldDir;
+	bool bScreenToWorld=UGameplayStatics::DeprojectScreenToWorld(UGameplayStatics::GetPlayerController(this,0), crosshairLoc, crosshairWorldPos, crosshairWorldDir);
+
+	if(bScreenToWorld)
+	{
+		FVector start = crosshairWorldPos;
+		FVector end = start + crosshairWorldDir* TraceLength;
+		GetWorld()->LineTraceSingleByChannel(TraceHitResult, start, end,ECollisionChannel::ECC_Visibility);
+		if(!TraceHitResult.bBlockingHit)
+		{
+			TraceHitResult.ImpactPoint = end;
+			HitTarget = end;
+		}
+		else
+		{
+			HitTarget = TraceHitResult.ImpactPoint;
+			DrawDebugSphere(GetWorld(),TraceHitResult.ImpactPoint,12.f,12,FColor::Red);
+		}
+	}
 }
 
 void UCombatComponent::SetHUDCrosshairs(float DeltaTime)

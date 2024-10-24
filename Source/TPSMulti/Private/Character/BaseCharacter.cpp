@@ -34,6 +34,9 @@ ABaseCharacter::ABaseCharacter()
 	NetUpdateFrequency = 66.f;
 	MinNetUpdateFrequency = 33.f;
 
+	AO_Yaw = 0.f;
+	InterpAO_Yaw = 0.f;
+	AO_Pitch = 0.f;
 	TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
