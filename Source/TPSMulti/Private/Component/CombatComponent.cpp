@@ -177,15 +177,27 @@ void UCombatComponent::ShotgunLocalFire(const TArray<FVector_NetQuantize>& Trace
 
 void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& TraceHitTarget, float FireDelay)
 {
+	MulticastFire(TraceHitTarget);
 }
 
 bool UCombatComponent::ServerFire_Validate(const FVector_NetQuantize& TraceHitTarget, float FireDelay)
 {
-	return false;
+	return true;
 }
 
 void UCombatComponent::MulticastFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
 {
+	if (!EquippedWeapon)
+	{
+		return;
+	}
+	if (Character &&
+		bFireButtonPressed)
+	{
+		Character->PlayFireMontage(bAiming);
+		FVector hitTarget;
+		EquippedWeapon->Fire(hitTarget);
+	}
 }
 
 void UCombatComponent::ServerShotgunFire_Implementation(const TArray<FVector_NetQuantize>& TraceHitTargets, float FireDelay)
@@ -315,6 +327,12 @@ void UCombatComponent::FinishSwapAttachWeapons()
 
 void UCombatComponent::FireButtonPressed(bool bPressed)
 {
+	bFireButtonPressed = bPressed;
+	if(bFireButtonPressed)
+	{
+		FVector_NetQuantize temp;
+		ServerFire(temp,0.1f);
+	}
 }
 
 void UCombatComponent::ShotgunShellReload()

@@ -4,7 +4,7 @@
 #include "Weapon/Weapon.h"
 #include "Component/CombatComponent.h"
 //#include "Blaster/BlasterComponents/BuffComponent.h"
-//#include "BlasterAnimInstance.h"
+#include "Character/BaseAnimInstance.h"
 //#include "Blaster/PlayerController/BlasterPlayerController.h"
 //#include "Blaster/GameMode/BlasterGameMode.h"
 //#include "Blaster/PlayerState/BlasterPlayerState.h"
@@ -410,10 +410,18 @@ void ABaseCharacter::SimProxiesTurn()
 
 void ABaseCharacter::FireButtonPressed()
 {
+	if(Combat)
+	{
+		Combat->FireButtonPressed(true);
+	}
 }
 
 void ABaseCharacter::FireButtonReleased()
 {
+	if (Combat)
+	{
+		Combat->FireButtonPressed(false);
+	}
 }
 
 void ABaseCharacter::PlayHitReactMontage()
@@ -454,6 +462,26 @@ void ABaseCharacter::RotateInPlace(float DeltaTime)
 
 void ABaseCharacter::PlayFireMontage(bool bAiming)
 {
+	if(!Combat
+		||!Combat->EquippedWeapon)
+	{
+		return;
+	}
+	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
+	if(animInstance&&FireWeaponMontage)
+	{
+		animInstance->Montage_Play(FireWeaponMontage);
+		FName sectionName;
+		if(bAiming)
+		{
+			sectionName = SECTION_RIFLEAIM;
+		}
+		else
+		{
+			sectionName = SECTION_RIFLEHIP;
+		}
+		animInstance->Montage_JumpToSection(sectionName);
+	}
 }
 
 void ABaseCharacter::PlayReloadMontage()

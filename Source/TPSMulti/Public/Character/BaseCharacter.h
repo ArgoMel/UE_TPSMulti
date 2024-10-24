@@ -295,7 +295,9 @@ protected:
 	void CalculateAO_Pitch();
 	void SimProxiesTurn();
 
+	UFUNCTION(BlueprintCallable, Category = "Input")
 	void FireButtonPressed();
+	UFUNCTION(BlueprintCallable, Category = "Input")
 	void FireButtonReleased();
 	void PlayHitReactMontage();
 	void GrenadeButtonPressed();

@@ -8,6 +8,9 @@
 
 #define BONE_RIGHTHAND FName(TEXT("hand_r"))
 
+#define SECTION_RIFLEAIM FName(TEXT("RifleAim"))
+#define SECTION_RIFLEHIP FName(TEXT("RifleHip"))
+
 #define PRINT_STRING(MSG)\
 if(GEngine)\
 {\
