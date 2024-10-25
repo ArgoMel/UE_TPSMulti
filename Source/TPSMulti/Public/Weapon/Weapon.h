@@ -10,6 +10,7 @@ class UWidgetComponent;
 class UAnimationAsset;
 class ABaseCharacter;
 class USoundCue;
+class ACasing;
 
 UENUM(BlueprintType)
 enum class EWeaponState : uint8
@@ -60,8 +61,8 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Weapon Properties")
 	UAnimationAsset* FireAnimation;
 
-	//UPROPERTY(EditAnywhere)
-	//TSubclassOf<class ACasing> CasingClass;
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<ACasing> CasingClass;
 
 	UPROPERTY(EditAnywhere)
 	int32 Ammo;

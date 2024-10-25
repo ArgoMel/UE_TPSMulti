@@ -6,6 +6,7 @@
 #define SOCKET_LEFTHAND FName(TEXT("LeftHandSocket"))
 #define SOCKET_RIGHTHAND FName(TEXT("RightHandSocket"))
 #define SOCKET_MUZZLEFLASH FName(TEXT("MuzzleFlash"))
+#define SOCKET_AMMOEJECT FName(TEXT("AmmoEject"))
 
 #define BONE_RIGHTHAND FName(TEXT("hand_r"))
 

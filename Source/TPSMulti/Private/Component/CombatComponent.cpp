@@ -34,7 +34,7 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME(UCombatComponent, SecondaryWeapon);
 	DOREPLIFETIME(UCombatComponent, bAiming);
 	DOREPLIFETIME_CONDITION(UCombatComponent, CarriedAmmo, COND_OwnerOnly);
-	//DOREPLIFETIME(UCombatComponent, CombatState);
+	DOREPLIFETIME(UCombatComponent, CombatState);
 	DOREPLIFETIME(UCombatComponent, Grenades);
 	DOREPLIFETIME(UCombatComponent, bHoldingTheFlag);
 }
@@ -51,8 +51,6 @@ void UCombatComponent::BeginPlay()
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	FHitResult hitResult;
-	TraceUnderCrosshairs(hitResult);
 }
 
 void UCombatComponent::OnRep_Aiming()
@@ -73,7 +71,7 @@ void UCombatComponent::FireTimerFinished()
 
 bool UCombatComponent::CanFire()
 {
-	return false;
+	return true;
 }
 
 void UCombatComponent::OnRep_CarriedAmmo()
@@ -157,10 +155,35 @@ void UCombatComponent::OnRep_SecondaryWeapon()
 
 void UCombatComponent::Fire()
 {
+	if (CanFire())
+	{
+		//bCanFire = false;
+		//if (EquippedWeapon)
+		//{
+		//	CrosshairShootingFactor = .75f;
+
+		//	switch (EquippedWeapon->FireType)
+		//	{
+		//	case EFireType::EFT_Projectile:
+				FireProjectileWeapon();
+		//		break;
+		//	case EFireType::EFT_HitScan:
+		//		FireHitScanWeapon();
+		//		break;
+		//	case EFireType::EFT_Shotgun:
+		//		FireShotgun();
+		//		break;
+		//	}
+		//}
+		//StartFireTimer();
+	}
 }
 
 void UCombatComponent::FireProjectileWeapon()
 {
+	FHitResult hitResult;
+	TraceUnderCrosshairs(hitResult);
+	ServerFire(hitResult.ImpactPoint, 0.1f);
 }
 
 void UCombatComponent::FireHitScanWeapon()
@@ -195,11 +218,10 @@ void UCombatComponent::MulticastFire_Implementation(const FVector_NetQuantize& T
 	{
 		return;
 	}
-	if (Character &&
-		bFireButtonPressed)
+	if (Character)
 	{
 		Character->PlayFireMontage(bAiming);
-		EquippedWeapon->Fire(HitTarget);
+		EquippedWeapon->Fire(TraceHitTarget);
 	}
 }
 
@@ -234,16 +256,8 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 		FVector start = crosshairWorldPos;
 		FVector end = start + crosshairWorldDir* TraceLength;
 		GetWorld()->LineTraceSingleByChannel(TraceHitResult, start, end,ECollisionChannel::ECC_Visibility);
-		if(!TraceHitResult.bBlockingHit)
-		{
-			TraceHitResult.ImpactPoint = end;
-			HitTarget = end;
-		}
-		else
-		{
-			HitTarget = TraceHitResult.ImpactPoint;
-			DrawDebugSphere(GetWorld(),TraceHitResult.ImpactPoint,12.f,12,FColor::Red);
-		}
+
+		//DrawDebugSphere(GetWorld(),TraceHitResult.ImpactPoint,12.f,12,FColor::Red);
 	}
 }
 
@@ -360,8 +374,7 @@ void UCombatComponent::FireButtonPressed(bool bPressed)
 	bFireButtonPressed = bPressed;
 	if(bFireButtonPressed)
 	{
-		FVector_NetQuantize temp;
-		ServerFire(temp,0.1f);
+		Fire();
 	}
 }
 

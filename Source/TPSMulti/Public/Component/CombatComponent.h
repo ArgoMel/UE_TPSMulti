@@ -1,15 +1,14 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
-#include "CoreMinimal.h"
+#include <TPSMulti/TPSMulti.h>
 #include "Components/ActorComponent.h"
 //#include "Blaster/HUD/BlasterHUD.h"
-//#include "Blaster/Weapon/WeaponTypes.h"
-//#include "Blaster/BlasterTypes/CombatState.h"
 #include "CombatComponent.generated.h"
 
 class ABaseCharacter;
 class AWeapon;
+class AProjectile;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class TPSMULTI_API UCombatComponent : public UActorComponent
@@ -106,8 +105,8 @@ private:
 	UPROPERTY(EditAnywhere)
 	int32 StartingGrenadeLauncherAmmo = 0;
 
-	//UPROPERTY(ReplicatedUsing = OnRep_CombatState)
-	//ECombatState CombatState = ECombatState::ECS_Unoccupied;
+	UPROPERTY(ReplicatedUsing = OnRep_CombatState)
+	ECombatState CombatState = ECombatState::ECS_Unoccupied;
 
 	UPROPERTY(ReplicatedUsing = OnRep_Grenades)
 	int32 Grenades = 4;
@@ -122,8 +121,8 @@ private:
 	AWeapon* TheFlag;
 
 protected:
-	//UPROPERTY(EditAnywhere)
-	//TSubclassOf<class AProjectile> GrenadeClass;
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<AProjectile> GrenadeClass;
 
 public:
 	bool bLocallyReloading = false;

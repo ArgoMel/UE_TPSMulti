@@ -2,9 +2,9 @@
 
 #include "Weapon/Weapon.h"
 #include "Character/BaseCharacter.h"
-//#include "Casing.h"
+#include "Weapon/Casing.h"
 //#include "Blaster/PlayerController/BlasterPlayerController.h"
-//#include "Blaster/BlasterComponents/CombatComponent.h"
+#include "Component/CombatComponent.h"
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Net/UnrealNetwork.h"
@@ -67,21 +67,7 @@ void AWeapon::OnRep_Owner()
 
 void AWeapon::OnRep_WeaponState()
 {
-	switch (WeaponState)
-	{
-	case EWeaponState::EWS_Initial:
-		break;
-	case EWeaponState::EWS_Equipped:
-		ShowPickupWidget(false);
-		break;
-	case EWeaponState::EWS_EquippedSecondary:
-		break;
-	case EWeaponState::EWS_Dropped:
-		break;
-	case EWeaponState::EWS_MAX:
-	default:
-		break;
-	}
+	OnWeaponStateSet();
 }
 
 void AWeapon::ClientUpdateAmmo_Implementation(int32 ServerAmmo)
@@ -181,6 +167,18 @@ void AWeapon::Fire(const FVector& HitTarget)
 	if(FireAnimation)
 	{
 		WeaponMesh->PlayAnimation(FireAnimation,false);
+	}
+	if(CasingClass)
+	{
+		UWorld* world = GetWorld();
+		const USkeletalMeshSocket* ammmoEjectSocket = GetWeaponMesh()->GetSocketByName(SOCKET_AMMOEJECT);
+		FTransform socketTransform = ammmoEjectSocket->GetSocketTransform(GetWeaponMesh());
+		FActorSpawnParameters spawnParams;
+		spawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		if (ammmoEjectSocket && world)
+		{
+			world->SpawnActor<ACasing>(CasingClass, socketTransform.GetLocation(), socketTransform.GetRotation().Rotator(), spawnParams);
+		}
 	}
 }
 

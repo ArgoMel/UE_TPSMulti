@@ -296,9 +296,7 @@ protected:
 	void SimProxiesTurn();
 
 	UFUNCTION(BlueprintCallable, Category = "Input")
-	void FireButtonPressed();
-	UFUNCTION(BlueprintCallable, Category = "Input")
-	void FireButtonReleased();
+	void FireButton(bool bPressed);
 	void PlayHitReactMontage();
 	void GrenadeButtonPressed();
 	void DropOrDestroyWeapon(AWeapon* Weapon);

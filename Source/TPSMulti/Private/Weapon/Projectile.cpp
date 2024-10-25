@@ -32,6 +32,15 @@ AProjectile::AProjectile()
 void AProjectile::BeginPlay()
 {
 	Super::BeginPlay();
+	if(Tracer)
+	{
+		TracerComponent= UGameplayStatics::SpawnEmitterAttached(Tracer,CollisionBox,FName(),GetActorLocation(),GetActorRotation(),EAttachLocation::KeepWorldPosition);
+	}
+
+	if(HasAuthority())
+	{
+		CollisionBox->OnComponentHit.AddDynamic(this,&ThisClass::OnHit);
+	}
 }
 
 void AProjectile::Tick(float DeltaTime)
@@ -42,6 +51,14 @@ void AProjectile::Tick(float DeltaTime)
 void AProjectile::Destroyed()
 {
 	Super::Destroyed();
+	if (ImpactParticles)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, GetActorTransform());
+	}
+	if (ImpactSound)
+	{
+		UGameplayStatics::SpawnSoundAtLocation(this, ImpactSound, GetActorLocation());
+	}
 }
 
 void AProjectile::StartDestroyTimer()
@@ -62,5 +79,6 @@ void AProjectile::ExplodeDamage()
 
 void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
+	Destroy();
 }
 

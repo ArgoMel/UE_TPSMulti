@@ -411,20 +411,15 @@ void ABaseCharacter::SimProxiesTurn()
 {
 }
 
-void ABaseCharacter::FireButtonPressed()
+void ABaseCharacter::FireButton(bool bPressed)
 {
-	if(Combat)
+	if (!Combat ||
+		Combat->bHoldingTheFlag ||
+		bDisableGameplay)
 	{
-		Combat->FireButtonPressed(true);
+		return;
 	}
-}
-
-void ABaseCharacter::FireButtonReleased()
-{
-	if (Combat)
-	{
-		Combat->FireButtonPressed(false);
-	}
+	Combat->FireButtonPressed(bPressed);
 }
 
 void ABaseCharacter::PlayHitReactMontage()
