@@ -3,10 +3,12 @@
 #pragma once
 #include <TPSMulti/TPSMulti.h>
 #include "Components/ActorComponent.h"
-//#include "Blaster/HUD/BlasterHUD.h"
+#include "HUD/BaseHUD.h"
 #include "CombatComponent.generated.h"
 
 class ABaseCharacter;
+class ABasePlayerController;
+class ABaseHUD;
 class AWeapon;
 class AProjectile;
 
@@ -25,10 +27,10 @@ protected:
 private:
 	UPROPERTY()
 	ABaseCharacter* Character;
-	//UPROPERTY()
-	//class ABlasterPlayerController* Controller;
-	//UPROPERTY()
-	//class ABlasterHUD* HUD;
+	UPROPERTY()
+	ABasePlayerController* Controller;
+	UPROPERTY()
+	ABaseHUD* HUD;
 
 	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon)
 	AWeapon* EquippedWeapon;
@@ -57,7 +59,7 @@ private:
 
 	FVector HitTarget;
 
-	//FHUDPackage HUDPackage;
+	FHUDPackage HUDPackage;
 
 	// Aiming and FOV
 	// Field of view when not aiming; set to the camera's base FOV in BeginPlay

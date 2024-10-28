@@ -22,7 +22,10 @@ void ACasing::BeginPlay()
 {
 	Super::BeginPlay();
 	CasingMesh->OnComponentHit.AddDynamic(this, &ACasing::OnHit);
-	CasingMesh->AddImpulse(GetActorForwardVector()* ShellEjectionImpulse);
+	FVector dir = GetActorForwardVector();
+	FRotator randRot(0.f, FMath::RandRange(0.f, 180.f),0.f);
+	dir*= randRot.Vector();
+	CasingMesh->AddImpulse(dir * ShellEjectionImpulse);
 }
 
 void ACasing::Delay_Destroy()

@@ -9,6 +9,7 @@ class USphereComponent;
 class UWidgetComponent;
 class UAnimationAsset;
 class ABaseCharacter;
+class ABasePlayerController;
 class USoundCue;
 class ACasing;
 
@@ -77,8 +78,8 @@ private:
 	//UPROPERTY(EditAnywhere)
 	//EWeaponType WeaponType;
 
-	//UPROPERTY(EditAnywhere)
-	//ETeam Team;
+	UPROPERTY(EditAnywhere)
+	ETeam Team;
 
 protected:
 	// Trace end with scatter
@@ -98,9 +99,9 @@ protected:
 	bool bUseServerSideRewind = false;
 
 	UPROPERTY()
-	class ABaseCharacter* BlasterOwnerCharacter;
-	//UPROPERTY()
-	//class ABasePlayerController* BlasterOwnerController;
+	ABaseCharacter* BlasterOwnerCharacter;
+	UPROPERTY()
+	ABasePlayerController* BlasterOwnerController;
 
 public:
 	// Textures for the weapon crosshairs
@@ -198,5 +199,5 @@ public:
 	FORCEINLINE int32 GetMagCapacity() const { return MagCapacity; }
 	FORCEINLINE float GetDamage() const { return Damage; }
 	FORCEINLINE float GetHeadShotDamage() const { return HeadShotDamage; }
-	//FORCEINLINE ETeam GetTeam() const { return Team; }
+	FORCEINLINE ETeam GetTeam() const { return Team; }
 };

@@ -571,7 +571,11 @@ AWeapon* ABaseCharacter::GetEquippedWeapon()
 
 FVector ABaseCharacter::GetHitTarget() const
 {
-	return FVector();
+	if(!Combat)
+	{
+		return FVector::ZeroVector;
+	}
+	return Combat->HitTarget;
 }
 
 ECombatState ABaseCharacter::GetCombatState() const
