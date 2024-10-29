@@ -3,6 +3,8 @@
 #pragma once
 #include "CoreMinimal.h"
 
+#define ECC_SkeletalMesh ECollisionChannel::ECC_GameTraceChannel1
+
 #define SOCKET_LEFTHAND FName(TEXT("LeftHandSocket"))
 #define SOCKET_RIGHTHAND FName(TEXT("RightHandSocket"))
 #define SOCKET_MUZZLEFLASH FName(TEXT("MuzzleFlash"))
@@ -12,6 +14,10 @@
 
 #define SECTION_RIFLEAIM FName(TEXT("RifleAim"))
 #define SECTION_RIFLEHIP FName(TEXT("RifleHip"))
+#define SECTION_FROMLEFT FName(TEXT("FromLeft"))
+#define SECTION_FROMRIGHT FName(TEXT("FromRight"))
+#define SECTION_FROMBACK FName(TEXT("FromBack"))
+#define SECTION_FROMFRONT FName(TEXT("FromFront"))
 
 #define PRINT_STRING(MSG)\
 if(GEngine)\

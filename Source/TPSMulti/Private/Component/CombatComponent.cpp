@@ -95,15 +95,45 @@ void UCombatComponent::InterpFOV(float DeltaTime)
 
 void UCombatComponent::StartFireTimer()
 {
+	if(!EquippedWeapon)
+	{
+		return;
+	}
+	GetWorld()->GetTimerManager().SetTimer(FireTimer,this,&ThisClass::FireTimerFinished, EquippedWeapon->FireDelay);
 }
 
 void UCombatComponent::FireTimerFinished()
 {
+	if (!EquippedWeapon)
+	{
+		return;
+	}
+	bCanFire = true;
+	if (bFireButtonPressed && 
+		EquippedWeapon->bAutomatic)
+	{
+		Fire();
+	}
+	ReloadEmptyWeapon();
 }
 
 bool UCombatComponent::CanFire()
 {
-	return true;
+	if (!EquippedWeapon)
+	{
+		return false;
+	}
+	if (!EquippedWeapon->IsEmpty() &&
+		bCanFire)// &&
+		//CombatState == ECombatState::ECS_Reloading && EquippedWeapon->GetWeaponType() == EWeaponType::EWT_Shotgun)
+	{
+		return true;
+	}
+	if (bLocallyReloading)
+	{
+		return false;
+	}
+	return !EquippedWeapon->IsEmpty() && bCanFire;//&& CombatState == ECombatState::ECS_Unoccupied;
 }
 
 void UCombatComponent::OnRep_CarriedAmmo()
@@ -189,10 +219,10 @@ void UCombatComponent::Fire()
 {
 	if (CanFire())
 	{
-		//bCanFire = false;
-		//if (EquippedWeapon)
-		//{
-		//	CrosshairShootingFactor = .75f;
+		bCanFire = false;
+		if (EquippedWeapon)
+		{
+			CrosshairShootingFactor = .75f;
 
 		//	switch (EquippedWeapon->FireType)
 		//	{
@@ -206,16 +236,14 @@ void UCombatComponent::Fire()
 		//		FireShotgun();
 		//		break;
 		//	}
-		//}
-		//StartFireTimer();
+		}
+		StartFireTimer();
 	}
 }
 
 void UCombatComponent::FireProjectileWeapon()
 {
-	FHitResult hitResult;
-	TraceUnderCrosshairs(hitResult);
-	ServerFire(hitResult.ImpactPoint, 0.1f);
+	ServerFire(HitTarget, 0.1f);
 }
 
 void UCombatComponent::FireHitScanWeapon()
@@ -286,10 +314,25 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 	if(bScreenToWorld)
 	{
 		FVector start = crosshairWorldPos;
+		if(Character)
+		{
+			float distToCharacter = (Character->GetActorLocation() - start).Size();
+			start += crosshairWorldDir * (distToCharacter+100.f);
+			//DrawDebugSphere(GetWorld(), start, 16.f, 12, FColor::Red,false);
+		}
 		FVector end = start + crosshairWorldDir* TraceLength;
 		GetWorld()->LineTraceSingleByChannel(TraceHitResult, start, end,ECollisionChannel::ECC_Visibility);
 
-		//DrawDebugSphere(GetWorld(),TraceHitResult.ImpactPoint,12.f,12,FColor::Red);
+		bFindEnemy = TraceHitResult.GetActor() &&
+			TraceHitResult.GetActor()->Implements<UInteractWithCrosshairInterface>();
+		if(bFindEnemy)
+		{
+			HUDPackage.CrosshairsColor = FLinearColor::Red;
+		}
+		else
+		{
+			HUDPackage.CrosshairsColor = FLinearColor::White;
+		}
 	}
 }
 
@@ -339,7 +382,27 @@ void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
 				CrosshairInAirFactor = FMath::FInterpTo(CrosshairInAirFactor, 0.f, DeltaTime, 30.f);
 			}
 
-			HUDPackage.CrosshairSpread = CrosshairVelocityFactor+ CrosshairInAirFactor;
+			if(bAiming)
+			{
+				CrosshairAimFactor = FMath::FInterpTo(CrosshairAimFactor,0.58f,DeltaTime,30.f);
+			}
+			else
+			{
+				CrosshairAimFactor = FMath::FInterpTo(CrosshairAimFactor, 0.f, DeltaTime, 30.f);
+			}
+
+			if (bFindEnemy)
+			{
+				CrosshairEnemyFactor = FMath::FInterpTo(CrosshairEnemyFactor, 0.1f, DeltaTime, 40.f);
+			}
+			else
+			{
+				CrosshairEnemyFactor = FMath::FInterpTo(CrosshairEnemyFactor, 0.f, DeltaTime, 40.f);
+			}
+
+			CrosshairShootingFactor = FMath::FInterpTo(CrosshairShootingFactor,0.f,DeltaTime,40.f);
+
+			HUDPackage.CrosshairSpread = 0.5f+CrosshairVelocityFactor+ CrosshairInAirFactor-CrosshairAimFactor+CrosshairShootingFactor- CrosshairEnemyFactor;
 			HUD->SetHUDPackage(HUDPackage);
 		}
 	}

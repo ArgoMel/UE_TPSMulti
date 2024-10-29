@@ -50,12 +50,14 @@ private:
 	float AimWalkSpeed;
 
 	bool bFireButtonPressed;
-
+	
 	// HUD and crosshairs
+	bool bFindEnemy = false;
 	float CrosshairVelocityFactor;
 	float CrosshairInAirFactor;
 	float CrosshairAimFactor;
 	float CrosshairShootingFactor;
+	float CrosshairEnemyFactor;
 
 	FVector HitTarget;
 

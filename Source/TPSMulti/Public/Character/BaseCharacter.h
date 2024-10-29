@@ -3,7 +3,7 @@
 #pragma once
 #include <TPSMulti/TPSMulti.h>
 #include "GameFramework/Character.h"
-//#include "Blaster/Interfaces/InteractWithCrosshairsInterface.h"
+#include "Interface/InteractWithCrosshairInterface.h"
 #include "Components/TimelineComponent.h"
 #include "BaseCharacter.generated.h"
 
@@ -22,7 +22,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLeftGame);
 
 UCLASS()
 class TPSMULTI_API ABaseCharacter : public ACharacter
-	//, public IInteractWithCrosshairsInterface
+	, public IInteractWithCrosshairInterface
 {
 	GENERATED_BODY()
 public:
@@ -344,7 +344,7 @@ public:
 	void MulticastLostTheLead();
 	void MulticastLostTheLead_Implementation();
 
-	//void SetTeamColor(ETeam Team);
+	void SetTeamColor(ETeam Team);
 
 	void SetOverlappingWeapon(AWeapon* Weapon);
 	bool IsWeaponEquipped();
@@ -372,6 +372,6 @@ public:
 	bool IsLocallyReloading();
 	//FORCEINLINE ULagCompensationComponent* GetLagCompensation() const { return LagCompensation; }
 	FORCEINLINE bool IsHoldingTheFlag() const;
-	//ETeam GetTeam();
+	ETeam GetTeam();
 	void SetHoldingTheFlag(bool bHolding);
 };

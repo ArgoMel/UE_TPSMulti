@@ -41,7 +41,7 @@ ABaseCharacter::ABaseCharacter()
 
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 
-	//GetMesh()->SetCollisionObjectType(ECC_SkeletalMesh);
+	GetMesh()->SetCollisionObjectType(ECC_SkeletalMesh);
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
 
@@ -181,12 +181,34 @@ void ABaseCharacter::PostInitializeComponents()
 void ABaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	if (HasAuthority())
+	{
+		OnTakeAnyDamage.AddDynamic(this, &ThisClass::ReceiveDamage);
+	}
+	if (AttachedGrenade)
+	{
+		AttachedGrenade->SetVisibility(false);
+	}
 }
 
 void ABaseCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	AimOffset(DeltaTime);
+	if(GetLocalRole()>ENetRole::ROLE_SimulatedProxy&&
+		IsLocallyControlled())
+	{
+		AimOffset(DeltaTime);
+	}
+	else
+	{
+		TimeSinceLastMovementReplication += DeltaTime;
+		if(TimeSinceLastMovementReplication>0.25f)
+		{
+			OnRep_ReplicatedMovement();
+		}
+		CalculateAO_Pitch();
+	}
+	HideCameraIfCharacterClose();
 }
 
 void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -209,6 +231,8 @@ void ABaseCharacter::Jump()
 void ABaseCharacter::OnRep_ReplicatedMovement()
 {
 	Super::OnRep_ReplicatedMovement();
+	SimProxiesTurn();
+	TimeSinceLastMovementReplication = 0.f;
 }
 
 void ABaseCharacter::Destroyed()
@@ -260,11 +284,35 @@ void ABaseCharacter::TurnInPlace(float DeltaTime)
 
 void ABaseCharacter::HideCameraIfCharacterClose()
 {
+	if(!IsLocallyControlled())
+	{
+		return;
+	}
+	if((FollowCamera->GetComponentLocation()-GetActorLocation()).Size()<CameraThreshold)
+	{
+		GetMesh()->SetVisibility(false);
+		if(Combat&&
+			Combat->EquippedWeapon&&
+			Combat->EquippedWeapon->GetWeaponMesh())
+		{
+			Combat->EquippedWeapon->GetWeaponMesh()->bOwnerNoSee = true;
+		}
+	}
+	else
+	{
+		GetMesh()->SetVisibility(true);
+		if (Combat &&
+			Combat->EquippedWeapon &&
+			Combat->EquippedWeapon->GetWeaponMesh())
+		{
+			Combat->EquippedWeapon->GetWeaponMesh()->bOwnerNoSee = false;
+		}
+	}
 }
 
 float ABaseCharacter::CalculateSpeed()
 {
-	return 0.0f;
+	return GetVelocity().Size2D();
 }
 
 void ABaseCharacter::OnRep_Health(float LastHealth)
@@ -371,11 +419,11 @@ void ABaseCharacter::AimOffset(float DeltaTime)
 	{
 		return;
 	}
-	FVector velocity = GetVelocity();
-	float speed = velocity.Size2D();
+	float speed=CalculateSpeed();
 	bool isInAir = GetCharacterMovement()->IsFalling();
 	if(speed==0.f&&!isInAir)
 	{
+		bRotateRootBone = true;
 		FRotator curAimRot= FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
 		FRotator deltaAimRot= UKismetMathLibrary::NormalizedDeltaRotator(curAimRot,StartingAimRotation);
 		AO_Yaw = deltaAimRot.Yaw;
@@ -388,27 +436,63 @@ void ABaseCharacter::AimOffset(float DeltaTime)
 	}
 	if(speed>0.f||isInAir)
 	{
+		bRotateRootBone = false;
 		StartingAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
 		AO_Yaw = 0.f;
 		bUseControllerRotationYaw = true;
 		TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 	}
-	AO_Pitch=GetBaseAimRotation().Pitch;
-	if(AO_Pitch>90.f&&
-		!IsLocallyControlled())
-	{
-		FVector2D inRange(270.f,360.f);
-		FVector2D outRange(-90.f,0.f);
-		AO_Pitch = FMath::GetMappedRangeValueClamped(inRange,outRange,AO_Pitch);
-	}
+	CalculateAO_Pitch();
 }
 
 void ABaseCharacter::CalculateAO_Pitch()
 {
+	AO_Pitch = GetBaseAimRotation().Pitch;
+	if (AO_Pitch > 90.f &&
+		!IsLocallyControlled())
+	{
+		FVector2D inRange(270.f, 360.f);
+		FVector2D outRange(-90.f, 0.f);
+		AO_Pitch = FMath::GetMappedRangeValueClamped(inRange, outRange, AO_Pitch);
+	}
 }
 
 void ABaseCharacter::SimProxiesTurn()
 {
+	if(!Combat||
+		!Combat->EquippedWeapon)
+	{
+		return;
+	}
+	bRotateRootBone = false;
+	float speed = CalculateSpeed();
+	if(speed>0.f)
+	{
+		TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+		return;
+	}
+
+	ProxyRotationLastFrame = ProxyRotation;
+	ProxyRotation = GetActorRotation();
+	ProxyYaw=UKismetMathLibrary::NormalizedDeltaRotator(ProxyRotation,ProxyRotationLastFrame).Yaw;
+
+	if(FMath::Abs(ProxyYaw)>TurnThreshold)
+	{
+		if(ProxyYaw>TurnThreshold)
+		{
+			TurningInPlace = ETurningInPlace::ETIP_Right;
+		}
+		else if (ProxyYaw < -TurnThreshold) 
+		{
+			TurningInPlace = ETurningInPlace::ETIP_Left;
+		}
+		else
+		{
+			TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+		}
+		return;
+	}
+	TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 }
 
 void ABaseCharacter::FireButton(bool bPressed)
@@ -424,6 +508,18 @@ void ABaseCharacter::FireButton(bool bPressed)
 
 void ABaseCharacter::PlayHitReactMontage()
 {
+	if (!Combat
+		|| !Combat->EquippedWeapon)
+	{
+		return;
+	}
+	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
+	if (animInstance && HitReactMontage)
+	{
+		animInstance->Montage_Play(HitReactMontage);
+		FName sectionName = SECTION_FROMFRONT;
+		animInstance->Montage_JumpToSection(sectionName);
+	}
 }
 
 void ABaseCharacter::GrenadeButtonPressed()
@@ -448,6 +544,7 @@ void ABaseCharacter::OnPlayerStateInitialized()
 
 void ABaseCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatorController, AActor* DamageCauser)
 {
+	PlayHitReactMontage();
 }
 
 void ABaseCharacter::PollInit()
@@ -534,6 +631,10 @@ void ABaseCharacter::MulticastLostTheLead_Implementation()
 {
 }
 
+void ABaseCharacter::SetTeamColor(ETeam Team)
+{
+}
+
 void ABaseCharacter::SetOverlappingWeapon(AWeapon* Weapon)
 {
 	if (OverlappingWeapon)
@@ -591,6 +692,11 @@ bool ABaseCharacter::IsLocallyReloading()
 bool ABaseCharacter::IsHoldingTheFlag() const
 {
 	return false;
+}
+
+ETeam ABaseCharacter::GetTeam()
+{
+	return ETeam();
 }
 
 void ABaseCharacter::SetHoldingTheFlag(bool bHolding)
