@@ -1,8 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "PlayerController/BasePlayerController.h"
-//#include "Blaster/HUD/BlasterHUD.h"
-//#include "Blaster/HUD/CharacterOverlay.h"
+#include "HUD/BaseHUD.h"
+#include "HUD/CharacterOverlayWidget.h"
 #include "Character/BaseCharacter.h"
 //#include "Blaster/GameMode/BlasterGameMode.h"
 //#include "Blaster/PlayerState/BlasterPlayerState.h"
@@ -27,11 +27,18 @@ void ABasePlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 void ABasePlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
+	ABaseCharacter* baseCharacter = Cast<ABaseCharacter>(InPawn);
+	if (baseCharacter)
+	{
+		SetHUDHealth(baseCharacter->GetHealth(), baseCharacter->GetMaxHealth());
+	}
 }
 
 void ABasePlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+	BaseHUD = Cast<ABaseHUD>(GetHUD());
+	ServerCheckMatchState();
 }
 
 void ABasePlayerController::Tick(float DeltaTime)
@@ -122,6 +129,21 @@ FString ABasePlayerController::GetTeamsInfoText(ABlasterGameState* BlasterGameSt
 
 void ABasePlayerController::SetHUDHealth(float Health, float MaxHealth)
 {
+	if(!BaseHUD)
+	{
+		BaseHUD = Cast<ABaseHUD>(GetHUD());
+	}
+	bool bHUDValid = BaseHUD &&
+		BaseHUD->CharacterOverlay &&
+		BaseHUD->CharacterOverlay->HealthBar &&
+		BaseHUD->CharacterOverlay->HealthText;
+	if(bHUDValid)
+	{
+		const float healthPercent = Health / MaxHealth;
+		BaseHUD->CharacterOverlay->HealthBar->SetPercent(healthPercent);
+		FString healthText = FString::Printf(TEXT("%d/%d"), FMath::CeilToInt(Health), FMath::CeilToInt(MaxHealth));
+		BaseHUD->CharacterOverlay->HealthText->SetText(FText::FromString(healthText));
+	}
 }
 
 void ABasePlayerController::SetHUDShield(float Shield, float MaxShield)

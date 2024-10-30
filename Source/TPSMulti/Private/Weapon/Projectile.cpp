@@ -9,7 +9,7 @@
 #include "Sound/SoundCue.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
-#include "GameFramework/ProjectileMovementComponent.h"
+#include "Net/UnrealNetwork.h"
 
 AProjectile::AProjectile()
 {
@@ -24,9 +24,13 @@ AProjectile::AProjectile()
 	CollisionBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
 	CollisionBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Block);
 	CollisionBox->SetCollisionResponseToChannel(ECC_SkeletalMesh, ECollisionResponse::ECR_Block);
+	CollisionBox->SetBoxExtent(FVector(5.f,2.5f,2.5f));
+}
 
-	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));
-	ProjectileMovementComponent->bRotationFollowsVelocity = true;
+void AProjectile::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME_CONDITION(ThisClass, HitTarget, COND_OwnerOnly);
 }
 
 void AProjectile::BeginPlay()
@@ -51,7 +55,13 @@ void AProjectile::Tick(float DeltaTime)
 void AProjectile::Destroyed()
 {
 	Super::Destroyed();
-	if (ImpactParticles)
+	if(HitTarget&&
+		HitTarget->Implements<UInteractWithCrosshairInterface>()&&
+		EnemyImpactParticle)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), EnemyImpactParticle, GetActorTransform());
+	}
+	else if (ImpactParticles)
 	{
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, GetActorTransform());
 	}
@@ -76,10 +86,9 @@ void AProjectile::SpawnTrailSystem()
 void AProjectile::ExplodeDamage()
 {
 }
-#include "Engine/DamageEvents.h"
 void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	OtherActor->TakeDamage(1.f, FDamageEvent(), nullptr, GetOwner());
+	HitTarget = OtherActor;
 	Destroy();
 }
 

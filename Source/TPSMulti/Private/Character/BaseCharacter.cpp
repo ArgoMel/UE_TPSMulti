@@ -5,7 +5,7 @@
 #include "Component/CombatComponent.h"
 //#include "Blaster/BlasterComponents/BuffComponent.h"
 #include "Character/BaseAnimInstance.h"
-//#include "Blaster/PlayerController/BlasterPlayerController.h"
+#include "PlayerController/BasePlayerController.h"
 //#include "Blaster/GameMode/BlasterGameMode.h"
 //#include "Blaster/PlayerState/BlasterPlayerState.h"
 //#include "Blaster/Weapon/WeaponTypes.h"
@@ -176,6 +176,23 @@ void ABaseCharacter::PostInitializeComponents()
 	{
 		Combat->Character = this;
 	}
+	//if (Buff)
+	//{
+	//	Buff->Character = this;
+	//	Buff->SetInitialSpeeds(
+	//		GetCharacterMovement()->MaxWalkSpeed,
+	//		GetCharacterMovement()->MaxWalkSpeedCrouched
+	//	);
+	//	Buff->SetInitialJumpVelocity(GetCharacterMovement()->JumpZVelocity);
+	//}
+	//if (LagCompensation)
+	//{
+	//	LagCompensation->Character = this;
+	//	if (Controller)
+	//	{
+	//		LagCompensation->Controller = Cast<ABasePlayerController>(Controller);
+	//	}
+	//}
 }
 
 void ABaseCharacter::BeginPlay()
@@ -189,6 +206,7 @@ void ABaseCharacter::BeginPlay()
 	{
 		AttachedGrenade->SetVisibility(false);
 	}
+	UpdateHUDHealth();
 }
 
 void ABaseCharacter::Tick(float DeltaTime)
@@ -317,6 +335,8 @@ float ABaseCharacter::CalculateSpeed()
 
 void ABaseCharacter::OnRep_Health(float LastHealth)
 {
+	UpdateHUDHealth();
+	PlayHitReactMontage();
 }
 
 void ABaseCharacter::OnRep_Shield(float LastShield)
@@ -544,6 +564,8 @@ void ABaseCharacter::OnPlayerStateInitialized()
 
 void ABaseCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatorController, AActor* DamageCauser)
 {
+	Health = FMath::Clamp(Health- Damage,0.f,MaxHealth);
+	UpdateHUDHealth();
 	PlayHitReactMontage();
 }
 
@@ -605,6 +627,14 @@ void ABaseCharacter::MulticastElim_Implementation(bool bPlayerLeftGame)
 
 void ABaseCharacter::UpdateHUDHealth()
 {
+	if(!BasePlayerController)
+	{
+		BasePlayerController =Cast<ABasePlayerController>(Controller);
+	}
+	if (BasePlayerController)
+	{
+		BasePlayerController->SetHUDHealth(Health, MaxHealth);
+	}
 }
 
 void ABaseCharacter::UpdateHUDShield()

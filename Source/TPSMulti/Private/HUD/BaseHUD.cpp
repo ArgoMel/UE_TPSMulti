@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "HUD/BaseHUD.h"
-//#include "CharacterOverlay.h"
+#include "HUD/CharacterOverlayWidget.h"
 //#include "Announcement.h"
 //#include "ElimAnnouncement.h
 #include "GameFramework/PlayerController.h"
@@ -12,6 +12,7 @@
 void ABaseHUD::BeginPlay()
 {
 	Super::BeginPlay();
+	AddCharacterOverlay();
 }
 
 void ABaseHUD::DrawHUD()
@@ -61,6 +62,12 @@ void ABaseHUD::DrawCrosshair(UTexture2D* Texture, FVector2D ViewportCenter, FVec
 
 void ABaseHUD::AddCharacterOverlay()
 {
+	APlayerController* playerController = GetOwningPlayerController();
+	if (playerController && CharacterOverlayClass)
+	{
+		CharacterOverlay = CreateWidget<UCharacterOverlayWidget>(playerController, CharacterOverlayClass);
+		CharacterOverlay->AddToViewport();
+	}
 }
 
 void ABaseHUD::AddAnnouncement()

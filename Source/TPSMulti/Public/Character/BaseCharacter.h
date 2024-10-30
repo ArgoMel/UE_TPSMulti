@@ -17,6 +17,7 @@ class USoundCue;
 class UNiagaraSystem;
 class UNiagaraComponent;
 class UBoxComponent;
+class ABasePlayerController;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLeftGame);
 
@@ -109,8 +110,8 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_Shield, EditAnywhere, Category = "Player Stats")
 	float Shield = 0.f;
 
-	//UPROPERTY()
-	//class ABlasterPlayerController* BlasterPlayerController;
+	UPROPERTY()
+	ABasePlayerController* BasePlayerController;
 
 	bool bElimmed = false;
 

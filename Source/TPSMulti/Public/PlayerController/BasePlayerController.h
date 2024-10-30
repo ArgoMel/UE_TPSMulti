@@ -5,6 +5,8 @@
 #include "GameFramework/PlayerController.h"
 #include "BasePlayerController.generated.h"
 
+class ABaseHUD;
+class UCharacterOverlayWidget;
 class UUserWidget;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHighPingDelegate, bool, bPingTooHigh);
@@ -22,8 +24,8 @@ protected:
 	virtual void ReceivedPlayer() override; // Sync with server clock as soon as possible
 
 private:
-	//UPROPERTY()
-	//class ABlasterHUD* BlasterHUD;
+	UPROPERTY()
+	ABaseHUD* BaseHUD;
 
 	//UPROPERTY()
 	//class ABlasterGameMode* BlasterGameMode;
@@ -46,8 +48,8 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_MatchState)
 	FName MatchState;
 
-	//UPROPERTY()
-	//class UCharacterOverlay* CharacterOverlay;
+	UPROPERTY()
+	UCharacterOverlayWidget* CharacterOverlay;
 
 	float HUDHealth;
 	bool bInitializeHealth = false;

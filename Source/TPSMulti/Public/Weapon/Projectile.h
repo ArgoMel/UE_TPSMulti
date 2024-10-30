@@ -20,6 +20,7 @@ class TPSMULTI_API AProjectile : public AActor
 public:	
 	AProjectile();
 protected:
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 	virtual void Destroyed() override;
@@ -36,9 +37,14 @@ private:
 	UPROPERTY(EditAnywhere)
 	float DestroyTime = 3.f;
 
+	UPROPERTY(Replicated)
+	TObjectPtr<AActor> HitTarget;
+
 protected:
 	UPROPERTY(EditAnywhere)
 	UParticleSystem* ImpactParticles;
+	UPROPERTY(EditAnywhere)
+	UParticleSystem* EnemyImpactParticle;
 
 	UPROPERTY(EditAnywhere)
 	USoundCue* ImpactSound;
