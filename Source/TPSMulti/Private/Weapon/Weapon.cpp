@@ -3,7 +3,7 @@
 #include "Weapon/Weapon.h"
 #include "Character/BaseCharacter.h"
 #include "Weapon/Casing.h"
-//#include "PlayerController/BasePlayerController.h"
+#include "PlayerController/BasePlayerController.h"
 #include "Component/CombatComponent.h"
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
@@ -107,10 +107,20 @@ void AWeapon::OnEquipped()
 {
 	ShowPickupWidget(false);
 	AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	WeaponMesh->SetSimulatePhysics(false);
+	WeaponMesh->SetEnableGravity(false);
+	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void AWeapon::OnDropped()
 {
+	if(HasAuthority())
+	{
+		AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	}
+	WeaponMesh->SetSimulatePhysics(true);
+	WeaponMesh->SetEnableGravity(true);
+	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 }
 
 void AWeapon::OnEquippedSecondary()
@@ -184,6 +194,10 @@ void AWeapon::Fire(const FVector& HitTarget)
 
 void AWeapon::Dropped()
 {
+	SetWeaponState(EWeaponState::EWS_Dropped);
+	FDetachmentTransformRules detachRules(EDetachmentRule::KeepWorld,true);
+	WeaponMesh->DetachFromComponent(detachRules);
+	SetOwner(nullptr);
 }
 
 void AWeapon::AddAmmo(int32 AmmoToAdd)

@@ -6,8 +6,8 @@
 //#include "Blaster/BlasterComponents/BuffComponent.h"
 #include "Character/BaseAnimInstance.h"
 #include "PlayerController/BasePlayerController.h"
-//#include "Blaster/GameMode/BlasterGameMode.h"
-//#include "Blaster/PlayerState/BlasterPlayerState.h"
+#include "GameMode/BaseGameMode.h"
+#include "PlayerState/BasePlayerState.h"
 //#include "Blaster/Weapon/WeaponTypes.h"
 //#include "Blaster/BlasterComponents/LagCompensationComponent.h"
 //#include "Blaster/GameState/BlasterGameState.h"
@@ -33,6 +33,7 @@ ABaseCharacter::ABaseCharacter()
 	bUseControllerRotationYaw = false;
 	NetUpdateFrequency = 66.f;
 	MinNetUpdateFrequency = 33.f;
+	SpawnCollisionHandlingMethod = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
 	AO_Yaw = 0.f;
 	InterpAO_Yaw = 0.f;
@@ -198,6 +199,12 @@ void ABaseCharacter::PostInitializeComponents()
 void ABaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	for (int32 i = 0; i < GetMesh()->GetNumMaterials(); ++i)
+	{
+		DynamicDissolveMaterialInstances.Add(UMaterialInstanceDynamic::Create(GetMesh()->GetMaterial(i), this));
+		GetMesh()->SetMaterial(i, DynamicDissolveMaterialInstances[i]);
+	}
+
 	if (HasAuthority())
 	{
 		OnTakeAnyDamage.AddDynamic(this, &ThisClass::ReceiveDamage);
@@ -206,7 +213,6 @@ void ABaseCharacter::BeginPlay()
 	{
 		AttachedGrenade->SetVisibility(false);
 	}
-	UpdateHUDHealth();
 }
 
 void ABaseCharacter::Tick(float DeltaTime)
@@ -227,6 +233,7 @@ void ABaseCharacter::Tick(float DeltaTime)
 		CalculateAO_Pitch();
 	}
 	HideCameraIfCharacterClose();
+	PollInit();
 }
 
 void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -256,6 +263,10 @@ void ABaseCharacter::OnRep_ReplicatedMovement()
 void ABaseCharacter::Destroyed()
 {
 	Super::Destroyed();
+	if (ElimBotComponent)
+	{
+		ElimBotComponent->DestroyComponent();
+	}
 }
 
 void ABaseCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
@@ -345,14 +356,32 @@ void ABaseCharacter::OnRep_Shield(float LastShield)
 
 void ABaseCharacter::ElimTimerFinished()
 {
+	if(!BaseGameMode)
+	{
+		BaseGameMode = GetWorld()->GetAuthGameMode<ABaseGameMode>();
+	}
+	if(BaseGameMode)
+	{
+		BaseGameMode->RequestRespawn(this,Controller);
+	}
 }
 
 void ABaseCharacter::UpdateDissolveMaterial(float DissolveValue)
 {
+	for (auto& mat : DynamicDissolveMaterialInstances)
+	{
+		mat->SetScalarParameterValue(MAT_PARAM_DISSOVE, DissolveValue);
+	}
 }
 
 void ABaseCharacter::StartDissolve()
 {
+	DissolveTrack.BindDynamic(this,&ThisClass::UpdateDissolveMaterial);
+	if(DissolveCurve&& DissolveTimeline)
+	{
+		DissolveTimeline->AddInterpFloat(DissolveCurve,DissolveTrack);
+		DissolveTimeline->Play();
+	}
 }
 
 void ABaseCharacter::Move(FVector2D Value)
@@ -552,6 +581,12 @@ void ABaseCharacter::DropOrDestroyWeapon(AWeapon* Weapon)
 
 void ABaseCharacter::DropOrDestroyWeapons()
 {
+	if (Combat &&
+		Combat->EquippedWeapon)
+	{
+		Combat->EquippedWeapon->Dropped();
+	}
+	GetWorld()->GetTimerManager().SetTimer(ElimTimer, this, &ThisClass::ElimTimerFinished, ElimDelay);
 }
 
 void ABaseCharacter::SetSpawnPoint()
@@ -567,10 +602,44 @@ void ABaseCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const UDa
 	Health = FMath::Clamp(Health- Damage,0.f,MaxHealth);
 	UpdateHUDHealth();
 	PlayHitReactMontage();
+
+	if(Health==0.f)
+	{
+		ABaseGameMode* baseGameMode = GetWorld()->GetAuthGameMode<ABaseGameMode>();
+		if (baseGameMode)
+		{
+			if(!BasePlayerController)
+			{
+				BasePlayerController = Cast<ABasePlayerController>(Controller);
+			}
+			ABasePlayerController* attackerController= Cast<ABasePlayerController>(InstigatorController);
+			baseGameMode->PlayerEliminated(this,BasePlayerController, attackerController);
+		}
+	}
 }
 
 void ABaseCharacter::PollInit()
 {
+	if(!BasePlayerState)
+	{
+		BasePlayerState=GetPlayerState<ABasePlayerState>();
+		if (BasePlayerState)
+		{
+			BasePlayerState->AddToScore(0.f);
+			BasePlayerState->AddToDefeats(0);
+		}
+	}
+	if (!BasePlayerController)
+	{
+		BasePlayerController = Cast<ABasePlayerController>(Controller);
+		if (BasePlayerController)
+		{
+			SpawDefaultWeapon();
+			UpdateHUDAmmo();
+			UpdateHUDHealth();
+			UpdateHUDShield();
+		}
+	}
 }
 
 void ABaseCharacter::RotateInPlace(float DeltaTime)
@@ -607,6 +676,11 @@ void ABaseCharacter::PlayReloadMontage()
 
 void ABaseCharacter::PlayElimMontage()
 {
+	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
+	if (animInstance && ElimMontage)
+	{
+		animInstance->Montage_Play(ElimMontage);
+	}
 }
 
 void ABaseCharacter::PlayThrowGrenadeMontage()
@@ -619,10 +693,41 @@ void ABaseCharacter::PlaySwapMontage()
 
 void ABaseCharacter::Elim(bool bPlayerLeftGame)
 {
+	DropOrDestroyWeapons();
+	MulticastElim(bPlayerLeftGame);
 }
 
 void ABaseCharacter::MulticastElim_Implementation(bool bPlayerLeftGame)
 {
+	bElimmed = true;
+	PlayElimMontage();
+	
+	for(auto& mat:DynamicDissolveMaterialInstances)
+	{
+		mat->SetScalarParameterValue(MAT_PARAM_DISSOVE,1.05f);
+		mat->SetScalarParameterValue(MAT_PARAM_DISSOVEGLOW,200.f);
+	}
+	StartDissolve();
+
+	GetCharacterMovement()->DisableMovement();
+	GetCharacterMovement()->StopMovementImmediately();
+	if(BasePlayerController)
+	{
+		DisableInput(BasePlayerController);
+	}
+
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	if(ElimBotEffect)
+	{
+		FVector elimBotSpawnPoint(GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z+200.f);
+		ElimBotComponent= UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ElimBotEffect, elimBotSpawnPoint,GetActorRotation());
+	}
+	if(ElimBotSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, ElimBotSound, GetActorLocation());
+	}
 }
 
 void ABaseCharacter::UpdateHUDHealth()

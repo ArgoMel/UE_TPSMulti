@@ -4,7 +4,7 @@
 #include "HUD/BaseHUD.h"
 #include "HUD/CharacterOverlayWidget.h"
 #include "Character/BaseCharacter.h"
-//#include "Blaster/GameMode/BlasterGameMode.h"
+#include "GameMode/BaseGameMode.h"
 //#include "Blaster/PlayerState/BlasterPlayerState.h"
 //#include "Blaster/HUD/Announcement.h"
 #include "Component/CombatComponent.h"
@@ -152,10 +152,34 @@ void ABasePlayerController::SetHUDShield(float Shield, float MaxShield)
 
 void ABasePlayerController::SetHUDScore(float Score)
 {
+	if (!BaseHUD)
+	{
+		BaseHUD = Cast<ABaseHUD>(GetHUD());
+	}
+	bool bHUDValid = BaseHUD &&
+		BaseHUD->CharacterOverlay &&
+		BaseHUD->CharacterOverlay->ScoreAmount;
+	if (bHUDValid)
+	{
+		FString scoreText = FString::Printf(TEXT("%d"), FMath::CeilToInt(Score));
+		BaseHUD->CharacterOverlay->ScoreAmount->SetText(FText::FromString(scoreText));
+	}
 }
 
 void ABasePlayerController::SetHUDDefeats(int32 Defeats)
 {
+	if (!BaseHUD)
+	{
+		BaseHUD = Cast<ABaseHUD>(GetHUD());
+	}
+	bool bHUDValid = BaseHUD &&
+		BaseHUD->CharacterOverlay &&
+		BaseHUD->CharacterOverlay->DefeatsAmount;
+	if (bHUDValid)
+	{
+		FString defeatsText = FString::Printf(TEXT("%d"), Defeats);
+		BaseHUD->CharacterOverlay->DefeatsAmount->SetText(FText::FromString(defeatsText));
+	}
 }
 
 void ABasePlayerController::SetHUDWeaponAmmo(int32 Ammo)

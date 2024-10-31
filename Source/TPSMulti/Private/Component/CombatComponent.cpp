@@ -206,6 +206,12 @@ void UCombatComponent::OnRep_EquippedWeapon()
 	if(EquippedWeapon&&
 		Character)
 	{
+		EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
+		const USkeletalMeshSocket* handSocket = Character->GetMesh()->GetSocketByName(SOCKET_RIGHTHAND);
+		if (handSocket)
+		{
+			handSocket->AttachActor(EquippedWeapon, Character->GetMesh());
+		}
 		Character->GetCharacterMovement()->bOrientRotationToMovement = false;
 		Character->bUseControllerRotationYaw = true;
 	}

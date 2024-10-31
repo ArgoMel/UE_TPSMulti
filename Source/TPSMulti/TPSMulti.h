@@ -19,6 +19,9 @@
 #define SECTION_FROMBACK FName(TEXT("FromBack"))
 #define SECTION_FROMFRONT FName(TEXT("FromFront"))
 
+#define MAT_PARAM_DISSOVE FName(TEXT("Dissolve"))
+#define MAT_PARAM_DISSOVEGLOW FName(TEXT("DissolveGlow"))
+
 #define PRINT_STRING(MSG)\
 if(GEngine)\
 {\

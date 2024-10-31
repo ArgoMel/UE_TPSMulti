@@ -18,6 +18,8 @@ class UNiagaraSystem;
 class UNiagaraComponent;
 class UBoxComponent;
 class ABasePlayerController;
+class ABaseGameMode;
+class ABasePlayerState;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLeftGame);
 
@@ -131,12 +133,7 @@ private:
 	UCurveFloat* DissolveCurve;
 
 	// Dynamic instance that we can change at runtime
-	UPROPERTY(VisibleAnywhere, Category = Elim)
-	UMaterialInstanceDynamic* DynamicDissolveMaterialInstance;
-
-	// Material instance set on the Blueprint, used with the dynamic material instance
-	UPROPERTY(VisibleAnywhere, Category = Elim)
-	UMaterialInstance* DissolveMaterialInstance;
+	TArray<UMaterialInstanceDynamic*> DynamicDissolveMaterialInstances;
 
 	// Team colors
 	UPROPERTY(EditAnywhere, Category = Elim)
@@ -164,8 +161,8 @@ private:
 	UPROPERTY(EditAnywhere)
 	USoundCue* ElimBotSound;
 
-	//UPROPERTY()
-	//class ABlasterPlayerState* BlasterPlayerState;
+	UPROPERTY()
+	ABasePlayerState* BasePlayerState;
 
 	UPROPERTY(EditAnywhere)
 	UNiagaraSystem* CrownSystem;
@@ -181,8 +178,8 @@ private:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<AWeapon> DefaultWeaponClass;
 
-	//UPROPERTY()
-	//class ABlasterGameMode* BlasterGameMode;
+	UPROPERTY()
+	ABaseGameMode* BaseGameMode;
 
 protected:
 	// Hit boxes used for server-side rewind
