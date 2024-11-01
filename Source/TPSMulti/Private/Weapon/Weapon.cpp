@@ -18,12 +18,15 @@ AWeapon::AWeapon()
 	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
 	SetReplicateMovement(true);
+	EnableCustomDepth(true);
 
 	WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
 	SetRootComponent(WeaponMesh);
 	WeaponMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
 	WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
 	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	WeaponMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_BLUE);
+	WeaponMesh->MarkRenderStateDirty();
 
 	AreaSphere = CreateDefaultSubobject<USphereComponent>(TEXT("AreaSphere"));
 	AreaSphere->SetupAttachment(RootComponent);
@@ -63,6 +66,24 @@ void AWeapon::Tick(float DeltaTime)
 void AWeapon::OnRep_Owner()
 {
 	Super::OnRep_Owner();
+	if (Owner == nullptr)
+	{
+		OwnerCharacter = nullptr;
+		OwnerController = nullptr;
+	}
+	else
+	{
+		if(!OwnerCharacter)
+		{
+			OwnerCharacter =Cast<ABaseCharacter>(Owner);
+		}
+		if (OwnerCharacter && 
+			OwnerCharacter->GetEquippedWeapon() &&
+			OwnerCharacter->GetEquippedWeapon() == this)
+		{
+			SetHUDAmmo();
+		}
+	}
 }
 
 void AWeapon::OnRep_WeaponState()
@@ -72,14 +93,48 @@ void AWeapon::OnRep_WeaponState()
 
 void AWeapon::ClientUpdateAmmo_Implementation(int32 ServerAmmo)
 {
+	if (HasAuthority())
+	{
+		return;
+	}
+	Ammo = ServerAmmo;
+	--Sequence;
+	Ammo -= Sequence;
+	SetHUDAmmo();
 }
 
 void AWeapon::ClientAddAmmo_Implementation(int32 AmmoToAdd)
 {
+	if (HasAuthority())
+	{
+		return;
+	}
+	Ammo = FMath::Clamp(Ammo + AmmoToAdd, 0, MagCapacity);
+	if (!OwnerCharacter)
+	{
+		OwnerCharacter = Cast<ABaseCharacter>(Owner);
+	}
+	if (OwnerCharacter &&
+		OwnerCharacter->GetCombat() &&
+		IsFull())
+	{
+		OwnerCharacter->GetCombat()->JumpToShotgunEnd();
+	}
+	SetHUDAmmo();
 }
 
 void AWeapon::SpendRound()
 {
+	Ammo = FMath::Clamp(Ammo - 1, 0, MagCapacity);
+	SetHUDAmmo();
+	if (HasAuthority())
+	{
+		ClientUpdateAmmo(Ammo);
+	}
+	else
+	{
+		++Sequence;
+	}
 }
 
 void AWeapon::OnWeaponStateSet()
@@ -96,9 +151,6 @@ void AWeapon::OnWeaponStateSet()
 		break;
 	case EWeaponState::EWS_Dropped:
 		OnDropped();
-		break;
-	case EWeaponState::EWS_MAX:
-	default:
 		break;
 	}
 }
@@ -133,8 +185,8 @@ void AWeapon::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* 
 
 	if (baseCharacter)
 	{
-		//if (WeaponType == EWeaponType::EWT_Flag && baseCharacter->GetTeam() == Team) return;
-		if (baseCharacter->IsHoldingTheFlag()) 
+		if ((WeaponType == EWeaponType::EWT_Flag && baseCharacter->GetTeam() == Team)&&
+			baseCharacter->IsHoldingTheFlag()) 
 		{
 			return;
 		}
@@ -147,8 +199,8 @@ void AWeapon::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActo
 	ABaseCharacter* baseCharacter = Cast<ABaseCharacter>(OtherActor);
 	if (baseCharacter)
 	{
-		//if (WeaponType == EWeaponType::EWT_Flag && baseCharacter->GetTeam() == Team) return;
-		if (baseCharacter->IsHoldingTheFlag())
+		if ((WeaponType == EWeaponType::EWT_Flag && baseCharacter->GetTeam() == Team)&&
+			baseCharacter->IsHoldingTheFlag())
 		{
 			return;
 		}
@@ -162,6 +214,21 @@ void AWeapon::OnPingTooHigh(bool bPingTooHigh)
 
 void AWeapon::SetHUDAmmo()
 {
+	if(!OwnerCharacter)
+	{
+		OwnerCharacter = Cast<ABaseCharacter>(GetOwner());
+	} 
+	if (OwnerCharacter)
+	{
+		if (!OwnerController)
+		{
+			OwnerController = Cast<ABasePlayerController>(OwnerCharacter->Controller);
+		}
+		if (OwnerController)
+		{
+			OwnerController->SetHUDWeaponAmmo(Ammo,WeaponType);
+		}
+	}
 }
 
 void AWeapon::ShowPickupWidget(bool bShowWidget)
@@ -182,14 +249,15 @@ void AWeapon::Fire(const FVector& HitTarget)
 	{
 		UWorld* world = GetWorld();
 		const USkeletalMeshSocket* ammmoEjectSocket = GetWeaponMesh()->GetSocketByName(SOCKET_AMMOEJECT);
-		FTransform socketTransform = ammmoEjectSocket->GetSocketTransform(GetWeaponMesh());
-		FActorSpawnParameters spawnParams;
-		spawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 		if (ammmoEjectSocket && world)
 		{
+			FTransform socketTransform = ammmoEjectSocket->GetSocketTransform(GetWeaponMesh());
+			FActorSpawnParameters spawnParams;
+			spawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 			world->SpawnActor<ACasing>(CasingClass, socketTransform.GetLocation(), socketTransform.GetRotation().Rotator(), spawnParams);
 		}
 	}
+	SpendRound();
 }
 
 void AWeapon::Dropped()
@@ -198,10 +266,15 @@ void AWeapon::Dropped()
 	FDetachmentTransformRules detachRules(EDetachmentRule::KeepWorld,true);
 	WeaponMesh->DetachFromComponent(detachRules);
 	SetOwner(nullptr);
+	OwnerCharacter = nullptr;
+	OwnerController = nullptr;
 }
 
 void AWeapon::AddAmmo(int32 AmmoToAdd)
 {
+	Ammo = FMath::Clamp(Ammo + AmmoToAdd, 0, MagCapacity);
+	SetHUDAmmo();
+	ClientAddAmmo(AmmoToAdd);
 }
 
 FVector AWeapon::TraceEndWithScatter(const FVector& HitTarget)
@@ -219,12 +292,16 @@ void AWeapon::SetWeaponState(EWeaponState State)
 	OnWeaponStateSet();
 }
 
-bool AWeapon::IsEmpty()
+bool AWeapon::IsEmpty() const
 {
-	return false;
+	if(Ammo== INF_AMMO)
+	{
+		return false;
+	}
+	return Ammo<=0;
 }
 
-bool AWeapon::IsFull()
+bool AWeapon::IsFull() const
 {
-	return false;
+	return Ammo == MagCapacity;
 }

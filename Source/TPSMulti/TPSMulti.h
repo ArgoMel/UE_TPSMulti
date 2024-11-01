@@ -3,6 +3,8 @@
 #pragma once
 #include "CoreMinimal.h"
 
+constexpr float TraceLength = 80000.f;
+
 #define ECC_SkeletalMesh ECollisionChannel::ECC_GameTraceChannel1
 
 #define SOCKET_LEFTHAND FName(TEXT("LeftHandSocket"))
@@ -22,6 +24,13 @@
 #define MAT_PARAM_DISSOVE FName(TEXT("Dissolve"))
 #define MAT_PARAM_DISSOVEGLOW FName(TEXT("DissolveGlow"))
 
+#define CUSTOM_DEPTH_PURPLE 250
+#define CUSTOM_DEPTH_BLUE 251
+#define CUSTOM_DEPTH_TAN 252
+
+#define INF_AMMO -1
+#define NO_WEAPON -2
+
 #define PRINT_STRING(MSG)\
 if(GEngine)\
 {\
@@ -40,6 +49,21 @@ namespace Announcement
 	const FString RedTeamWins(TEXT("Red team wins!"));
 	const FString BlueTeamWins(TEXT("Blue team wins!"));
 }
+
+UENUM(BlueprintType)
+enum class EWeaponType : uint8
+{
+	EWT_AssaultRifle UMETA(DisplayName = "Assault Rifle"),
+	EWT_RocketLauncher UMETA(DisplayName = "Rocket Launcher"),
+	EWT_Pistol UMETA(DisplayName = "Pistol"),
+	EWT_SubmachineGun UMETA(DisplayName = "Submachine Gun"),
+	EWT_Shotgun UMETA(DisplayName = "Shotgun"),
+	EWT_SniperRifle UMETA(DisplayName = "Sniper Rifle"),
+	EWT_GrenadeLauncher UMETA(DisplayName = "Grenade Launcher"),
+	EWT_Flag UMETA(DisplayName = "Flag"),
+
+	EWT_MAX UMETA(DisplayName = "DefaultMAX")
+};
 
 UENUM(BlueprintType)
 enum class ETurningInPlace : uint8

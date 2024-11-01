@@ -44,6 +44,7 @@ void ABasePlayerController::BeginPlay()
 void ABasePlayerController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	SetHUDTime();
 }
 
 void ABasePlayerController::SetupInputComponent()
@@ -182,16 +183,58 @@ void ABasePlayerController::SetHUDDefeats(int32 Defeats)
 	}
 }
 
-void ABasePlayerController::SetHUDWeaponAmmo(int32 Ammo)
+void ABasePlayerController::SetHUDWeaponAmmo(int32 Ammo, EWeaponType WeaponType)
 {
+	if (!BaseHUD)
+	{
+		BaseHUD = Cast<ABaseHUD>(GetHUD());
+	}
+	bool bHUDValid = BaseHUD &&
+		BaseHUD->CharacterOverlay &&
+		BaseHUD->CharacterOverlay->WeaponAmmoAmount&&
+		BaseHUD->CharacterOverlay->WeaponTypeText;
+	if (bHUDValid)
+	{
+		BaseHUD->CharacterOverlay->SetAmmoUI(Ammo != NO_WEAPON);
+		FString ammoText = FString::Printf(TEXT("%d"), Ammo);
+		BaseHUD->CharacterOverlay->WeaponAmmoAmount->SetText(FText::FromString(ammoText));
+		BaseHUD->CharacterOverlay->WeaponTypeText->SetText(UEnum::GetDisplayValueAsText(WeaponType));
+	}
 }
 
 void ABasePlayerController::SetHUDCarriedAmmo(int32 Ammo)
 {
+	if (!BaseHUD)
+	{
+		BaseHUD = Cast<ABaseHUD>(GetHUD());
+	}
+	bool bHUDValid = BaseHUD &&
+		BaseHUD->CharacterOverlay &&
+		BaseHUD->CharacterOverlay->CarriedAmmoAmount;
+	if (bHUDValid)
+	{
+		BaseHUD->CharacterOverlay->SetAmmoUI(Ammo != NO_WEAPON);
+		FString ammoText = FString::Printf(TEXT("%d"), Ammo);
+		BaseHUD->CharacterOverlay->CarriedAmmoAmount->SetText(FText::FromString(ammoText));
+	}
 }
 
 void ABasePlayerController::SetHUDMatchCountdown(float CountdownTime)
 {
+	if (!BaseHUD)
+	{
+		BaseHUD = Cast<ABaseHUD>(GetHUD());
+	}
+	bool bHUDValid = BaseHUD &&
+		BaseHUD->CharacterOverlay &&
+		BaseHUD->CharacterOverlay->MatchCountdownText;
+	if (bHUDValid)
+	{
+		int32 minutes = FMath::FloorToInt(CountdownTime / 60.f);
+		int32 seconds = CountdownTime- minutes*60;
+		FString countdownText = FString::Printf(TEXT("%02d:%02d"), minutes, seconds);
+		BaseHUD->CharacterOverlay->MatchCountdownText->SetText(FText::FromString(countdownText));
+	}
 }
 
 void ABasePlayerController::SetHUDAnnouncementCountdown(float CountdownTime)

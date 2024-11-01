@@ -7,6 +7,7 @@
 
 class UProgressBar;
 class UTextBlock;
+class USizeBox;
 class UImage;
 
 UCLASS(Abstract)
@@ -42,6 +43,12 @@ public:
 	UTextBlock* DefeatsAmount;
 
 	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<USizeBox> AmmoSB;
+
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* WeaponTypeText;
+
+	UPROPERTY(meta = (BindWidget))
 	UTextBlock* WeaponAmmoAmount;
 
 	UPROPERTY(meta = (BindWidget))
@@ -58,4 +65,7 @@ public:
 
 	//UPROPERTY(meta = (BindWidgetAnim), Transient)
 	//UWidgetAnimation* HighPingAnimation;
+
+public:
+	void SetAmmoUI(bool ShowUI);
 };

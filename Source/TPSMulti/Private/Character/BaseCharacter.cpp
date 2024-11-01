@@ -434,6 +434,15 @@ void ABaseCharacter::CrouchButtonPressed()
 
 void ABaseCharacter::ReloadButtonPressed()
 {
+	if ((Combat && Combat->bHoldingTheFlag)||
+		bDisableGameplay)
+	{
+		return;
+	}
+	if(Combat)
+	{
+		Combat->Reload();
+	}
 }
 
 void ABaseCharacter::AimButtonPressed()
@@ -672,6 +681,18 @@ void ABaseCharacter::PlayFireMontage(bool bAiming)
 
 void ABaseCharacter::PlayReloadMontage()
 {
+	if (!Combat
+		|| !Combat->EquippedWeapon)
+	{
+		return;
+	}
+	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
+	if (animInstance && ReloadMontage)
+	{
+		animInstance->Montage_Play(ReloadMontage);
+		FName sectionName=FName(UEnum::GetDisplayValueAsText(Combat->EquippedWeapon->GetWeaponType()).ToString());
+		animInstance->Montage_JumpToSection(sectionName);
+	}
 }
 
 void ABaseCharacter::PlayElimMontage()
@@ -748,6 +769,23 @@ void ABaseCharacter::UpdateHUDShield()
 
 void ABaseCharacter::UpdateHUDAmmo()
 {
+	if (!BasePlayerController)
+	{
+		BasePlayerController = Cast<ABasePlayerController>(Controller);
+	}
+	if (BasePlayerController)
+	{
+		if(GetEquippedWeapon())
+		{
+			BasePlayerController->SetHUDCarriedAmmo(Combat->CarriedAmmo);
+			BasePlayerController->SetHUDWeaponAmmo(GetEquippedWeapon()->GetAmmo());
+		}
+		else
+		{
+			BasePlayerController->SetHUDCarriedAmmo(NO_WEAPON);
+			BasePlayerController->SetHUDWeaponAmmo(NO_WEAPON);
+		}
+	}
 }
 
 void ABaseCharacter::SpawDefaultWeapon()
@@ -816,7 +854,11 @@ FVector ABaseCharacter::GetHitTarget() const
 
 ECombatState ABaseCharacter::GetCombatState() const
 {
-	return ECombatState();
+	if(!Combat)
+	{
+		return ECombatState::ECS_MAX;
+	}
+	return Combat->CombatState;
 }
 
 bool ABaseCharacter::IsLocallyReloading()

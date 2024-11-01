@@ -150,7 +150,7 @@ public:
 	void SetHUDShield(float Shield, float MaxShield);
 	void SetHUDScore(float Score);
 	void SetHUDDefeats(int32 Defeats);
-	void SetHUDWeaponAmmo(int32 Ammo);
+	void SetHUDWeaponAmmo(int32 Ammo,EWeaponType WeaponType=EWeaponType::EWT_MAX);
 	void SetHUDCarriedAmmo(int32 Ammo);
 	void SetHUDMatchCountdown(float CountdownTime);
 	void SetHUDAnnouncementCountdown(float CountdownTime);

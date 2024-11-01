@@ -85,4 +85,8 @@ private:
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	bool bHoldingTheFlag;
+
+protected:
+	UFUNCTION()
+	void AnimNotify_FinishReload();
 };

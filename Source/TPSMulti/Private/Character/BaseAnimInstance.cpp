@@ -3,9 +3,9 @@
 #include "Character/BaseAnimInstance.h"
 #include "Character/BaseCharacter.h"
 #include "Weapon/Weapon.h"
+#include "Component/CombatComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
-//#include "Blaster/BlasterTypes/CombatState.h"
 
 void UBaseAnimInstance::NativeInitializeAnimation()
 {
@@ -86,4 +86,13 @@ void UBaseAnimInstance::NativeUpdateAnimation(float DeltaTime)
 	}
 	bUseAimOffsets = BaseCharacter->GetCombatState() == ECombatState::ECS_Unoccupied && !BaseCharacter->GetDisableGameplay();
 	bTransformRightHand = BaseCharacter->GetCombatState() == ECombatState::ECS_Unoccupied && !BaseCharacter->GetDisableGameplay();
+}
+
+void UBaseAnimInstance::AnimNotify_FinishReload()
+{
+	if(IsValid(BaseCharacter)&&
+		IsValid(BaseCharacter->GetCombat()))
+	{
+		BaseCharacter->GetCombat()->FinishReloading();
+	}
 }

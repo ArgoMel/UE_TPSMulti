@@ -83,7 +83,7 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_CarriedAmmo)
 	int32 CarriedAmmo;
 
-	//TMap<EWeaponType, int32> CarriedAmmoMap;
+	TMap<EWeaponType, int32> CarriedAmmoMap;
 
 	UPROPERTY(EditAnywhere)
 	int32 MaxCarriedAmmo = 500;
@@ -258,7 +258,7 @@ public:
 	void ServerLaunchGrenade(const FVector_NetQuantize& Target);
 	void ServerLaunchGrenade_Implementation(const FVector_NetQuantize& Target);
 
-	//void PickupAmmo(EWeaponType WeaponType, int32 AmmoAmount);
+	void PickupAmmo(EWeaponType WeaponType, int32 AmmoAmount);
 
 	FORCEINLINE int32 GetGrenades() const { return Grenades; }
 	bool ShouldSwapWeapons();

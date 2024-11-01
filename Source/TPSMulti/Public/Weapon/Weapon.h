@@ -75,8 +75,8 @@ private:
 	// Incremented in SpendRound, decremented in ClientUpdateAmmo.
 	int32 Sequence = 0;
 
-	//UPROPERTY(EditAnywhere)
-	//EWeaponType WeaponType;
+	UPROPERTY(EditAnywhere)
+	EWeaponType WeaponType;
 
 	UPROPERTY(EditAnywhere)
 	ETeam Team;
@@ -99,9 +99,9 @@ protected:
 	bool bUseServerSideRewind = false;
 
 	UPROPERTY()
-	ABaseCharacter* BlasterOwnerCharacter;
+	ABaseCharacter* OwnerCharacter;
 	UPROPERTY()
-	ABasePlayerController* BlasterOwnerController;
+	ABasePlayerController* OwnerController;
 
 public:
 	// Textures for the weapon crosshairs
@@ -192,9 +192,9 @@ public:
 	FORCEINLINE UWidgetComponent* GetPickupWidget() const { return PickupWidget; }
 	FORCEINLINE float GetZoomedFOV() const { return ZoomedFOV; }
 	FORCEINLINE float GetZoomInterpSpeed() const { return ZoomInterpSpeed; }
-	bool IsEmpty();
-	bool IsFull();
-	//FORCEINLINE EWeaponType GetWeaponType() const { return WeaponType; }
+	bool IsEmpty() const;
+	bool IsFull() const;
+	FORCEINLINE EWeaponType GetWeaponType() const { return WeaponType; }
 	FORCEINLINE int32 GetAmmo() const { return Ammo; }
 	FORCEINLINE int32 GetMagCapacity() const { return MagCapacity; }
 	FORCEINLINE float GetDamage() const { return Damage; }
