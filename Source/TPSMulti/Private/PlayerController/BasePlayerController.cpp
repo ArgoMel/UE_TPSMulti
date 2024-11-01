@@ -68,6 +68,13 @@ void ABasePlayerController::ServerReportPingStatus_Implementation(bool bHighPing
 
 void ABasePlayerController::SetHUDTime()
 {
+	uint32 seconsLeft = FMath::CeilToInt(MatchTime-GetWorld()->GetTimeSeconds());
+	if(CountdownInt!=seconsLeft)
+	{
+		SetHUDMatchCountdown(MatchTime - GetWorld()->GetTimeSeconds());
+	}
+
+	CountdownInt = seconsLeft;
 }
 
 void ABasePlayerController::PollInit()

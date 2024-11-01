@@ -98,8 +98,8 @@ void AWeapon::ClientUpdateAmmo_Implementation(int32 ServerAmmo)
 		return;
 	}
 	Ammo = ServerAmmo;
-	--Sequence;
-	Ammo -= Sequence;
+	//--Sequence;
+	//Ammo -= Sequence;
 	SetHUDAmmo();
 }
 
