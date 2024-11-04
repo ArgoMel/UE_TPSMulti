@@ -15,22 +15,47 @@ namespace MatchState
 
 ABaseGameMode::ABaseGameMode()
 {
-	//bDelayedStart = true;
+	bDelayedStart = true;
 }
 
 void ABaseGameMode::BeginPlay()
 {
 	Super::BeginPlay();
+	LevelStartingTime = GetWorld()->GetTimeSeconds();
 }
 
 void ABaseGameMode::OnMatchStateSet()
 {
 	Super::OnMatchStateSet();
+	for (FConstPlayerControllerIterator iter = GetWorld()->GetPlayerControllerIterator(); iter;++iter)
+	{
+		ABasePlayerController* basePlayer = Cast<ABasePlayerController>(*iter);
+		if(basePlayer)
+		{
+			basePlayer->OnMatchStateSet(MatchState);
+		}
+	}
 }
 
 void ABaseGameMode::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	if(MatchState== MatchState::WaitingToStart)
+	{
+		CountdownTime = WarmupTime - GetWorld()->GetTimeSeconds()+LevelStartingTime;
+		if(CountdownTime<=0.f)
+		{
+			StartMatch();
+		}
+	}
+	else if (MatchState == MatchState::InProgress)
+	{
+		CountdownTime = WarmupTime +MatchTime- GetWorld()->GetTimeSeconds() + LevelStartingTime;
+		if (CountdownTime <= 0.f)
+		{
+			SetMatchState(MatchState::Cooldown);
+		}
+	}
 }
 
 void ABaseGameMode::PlayerEliminated(ABaseCharacter* ElimmedCharacter, ABasePlayerController* VictimController, ABasePlayerController* AttackerController)

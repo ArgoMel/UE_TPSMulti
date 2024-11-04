@@ -6,6 +6,7 @@
 #include "BasePlayerController.generated.h"
 
 class ABaseHUD;
+class ABaseGameMode;
 class UCharacterOverlayWidget;
 class UUserWidget;
 
@@ -27,8 +28,8 @@ private:
 	UPROPERTY()
 	ABaseHUD* BaseHUD;
 
-	//UPROPERTY()
-	//class ABlasterGameMode* BlasterGameMode;
+	UPROPERTY()
+	ABaseGameMode* BaseGameMode;
 
 	// Return to main menu
 	UPROPERTY(EditAnywhere, Category = HUD)

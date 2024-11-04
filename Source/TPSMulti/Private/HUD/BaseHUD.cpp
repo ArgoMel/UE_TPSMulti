@@ -2,7 +2,7 @@
 
 #include "HUD/BaseHUD.h"
 #include "HUD/CharacterOverlayWidget.h"
-//#include "Announcement.h"
+#include "HUD/AnnouncementWidget.h"
 //#include "ElimAnnouncement.h
 #include "GameFramework/PlayerController.h"
 #include "Components/HorizontalBox.h"
@@ -12,7 +12,6 @@
 void ABaseHUD::BeginPlay()
 {
 	Super::BeginPlay();
-	AddCharacterOverlay();
 }
 
 void ABaseHUD::DrawHUD()
@@ -72,6 +71,12 @@ void ABaseHUD::AddCharacterOverlay()
 
 void ABaseHUD::AddAnnouncement()
 {
+	APlayerController* playerController = GetOwningPlayerController();
+	if (playerController && AnnouncementClass)
+	{
+		Announcement = CreateWidget<UAnnouncementWidget>(playerController, AnnouncementClass);
+		Announcement->AddToViewport();
+	}
 }
 
 void ABaseHUD::AddElimAnnouncement(FString Attacker, FString Victim)

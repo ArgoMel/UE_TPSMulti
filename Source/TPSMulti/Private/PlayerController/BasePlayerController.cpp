@@ -5,11 +5,11 @@
 #include "HUD/CharacterOverlayWidget.h"
 #include "Character/BaseCharacter.h"
 #include "GameMode/BaseGameMode.h"
-//#include "Blaster/PlayerState/BlasterPlayerState.h"
-//#include "Blaster/HUD/Announcement.h"
+#include "PlayerState/BasePlayerState.h"
+#include "HUD/AnnouncementWidget.h"
 #include "Component/CombatComponent.h"
-//#include "Blaster/GameState/BlasterGameState.h"
-//#include "Blaster/HUD/ReturnToMainMenu.h"
+//#include "GameState/BaseGameState.h"
+//#include "HUD/ReturnToMainMenu.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
 #include "Net/UnrealNetwork.h"
@@ -45,6 +45,8 @@ void ABasePlayerController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	SetHUDTime();
+	CheckTimeSync(DeltaTime);
+	PollInit();
 }
 
 void ABasePlayerController::SetupInputComponent()
@@ -55,11 +57,22 @@ void ABasePlayerController::SetupInputComponent()
 void ABasePlayerController::ReceivedPlayer()
 {
 	Super::ReceivedPlayer();
+	if(IsLocalController())
+	{
+		ServerRequestServerTime(GetWorld()->GetTimeSeconds());
+	}
 }
 
 void ABasePlayerController::OnRep_MatchState()
 {
-	
+	if (MatchState == MatchState::InProgress)
+	{
+		HandleMatchHasStarted();
+	}
+	else if (MatchState == MatchState::Cooldown)
+	{
+		HandleCooldown();
+	}
 }
 
 void ABasePlayerController::ServerReportPingStatus_Implementation(bool bHighPing)
@@ -68,10 +81,27 @@ void ABasePlayerController::ServerReportPingStatus_Implementation(bool bHighPing
 
 void ABasePlayerController::SetHUDTime()
 {
-	uint32 seconsLeft = FMath::CeilToInt(MatchTime-GetWorld()->GetTimeSeconds());
+	float timeLeft = 0.f;
+	if (MatchState == MatchState::WaitingToStart)
+	{
+		timeLeft=WarmupTime - GetServerTime()+LevelStartingTime;
+	}
+	else if (MatchState == MatchState::InProgress)
+	{
+		timeLeft= WarmupTime+MatchTime - GetServerTime()+ LevelStartingTime;
+	}
+
+	uint32 seconsLeft = FMath::CeilToInt(timeLeft);
 	if(CountdownInt!=seconsLeft)
 	{
-		SetHUDMatchCountdown(MatchTime - GetWorld()->GetTimeSeconds());
+		if(MatchState==MatchState::WaitingToStart)
+		{
+			SetHUDAnnouncementCountdown(timeLeft);
+		}
+		else if (MatchState == MatchState::InProgress)
+		{
+			SetHUDMatchCountdown(timeLeft);
+		}
 	}
 
 	CountdownInt = seconsLeft;
@@ -79,26 +109,71 @@ void ABasePlayerController::SetHUDTime()
 
 void ABasePlayerController::PollInit()
 {
+	if(!CharacterOverlay)
+	{
+		if (BaseHUD&&
+			BaseHUD->CharacterOverlay)
+		{
+			CharacterOverlay = BaseHUD->CharacterOverlay;
+			if(CharacterOverlay)
+			{
+				SetHUDHealth(HUDHealth,HUDMaxHealth);
+				SetHUDScore(HUDScore);
+				SetHUDDefeats(HUDDefeats);
+			}
+		}
+	}
 }
 
 void ABasePlayerController::ServerRequestServerTime_Implementation(float TimeOfClientRequest)
 {
+	float serverTimeOfReceipt = GetWorld()->GetTimeSeconds();
+	ClientReportServerTime(TimeOfClientRequest, serverTimeOfReceipt);
 }
 
 void ABasePlayerController::ClientReportServerTime_Implementation(float TimeOfClientRequest, float TimeServerReceivedClientRequest)
 {
+	float roundTripTime = GetWorld()->GetTimeSeconds() - TimeOfClientRequest;
+	float curServerTime = TimeServerReceivedClientRequest+(0.5f*roundTripTime);
+	ClientServerDelta = curServerTime- GetWorld()->GetTimeSeconds();
 }
 
 void ABasePlayerController::CheckTimeSync(float DeltaTime)
 {
+	TimeSyncRunningTime += DeltaTime;
+	if (IsLocalController() &&
+		TimeSyncRunningTime > TimeSyncFrequency)
+	{
+		ServerRequestServerTime(GetWorld()->GetTimeSeconds());
+		TimeSyncRunningTime = 0.f;
+	}
 }
 
 void ABasePlayerController::ServerCheckMatchState_Implementation()
 {
+	ABaseGameMode* gameMode = Cast<ABaseGameMode>(UGameplayStatics::GetGameMode(this));
+	if(gameMode)
+	{
+		WarmupTime = gameMode->WarmupTime;
+		MatchTime = gameMode->MatchTime;
+		LevelStartingTime = gameMode->LevelStartingTime;
+		MatchState = gameMode->GetMatchState();
+		ClientJoinMidgame(MatchState, WarmupTime, MatchTime,0.f ,LevelStartingTime);
+	}
 }
 
 void ABasePlayerController::ClientJoinMidgame_Implementation(FName StateOfMatch, float Warmup, float Match, float Cooldown, float StartingTime)
 {
+	WarmupTime = Warmup;
+	MatchTime = Match;
+	LevelStartingTime = StartingTime;
+	MatchState = StateOfMatch;
+	OnMatchStateSet(MatchState);
+	if (BaseHUD &&
+		MatchState == MatchState::WaitingToStart)
+	{
+		BaseHUD->AddAnnouncement();
+	}
 }
 
 void ABasePlayerController::HighPingWarning()
@@ -152,6 +227,12 @@ void ABasePlayerController::SetHUDHealth(float Health, float MaxHealth)
 		FString healthText = FString::Printf(TEXT("%d/%d"), FMath::CeilToInt(Health), FMath::CeilToInt(MaxHealth));
 		BaseHUD->CharacterOverlay->HealthText->SetText(FText::FromString(healthText));
 	}
+	else
+	{
+		bInitializeHealth = true;
+		HUDHealth = Health;
+		HUDMaxHealth = MaxHealth;
+	}
 }
 
 void ABasePlayerController::SetHUDShield(float Shield, float MaxShield)
@@ -172,6 +253,11 @@ void ABasePlayerController::SetHUDScore(float Score)
 		FString scoreText = FString::Printf(TEXT("%d"), FMath::CeilToInt(Score));
 		BaseHUD->CharacterOverlay->ScoreAmount->SetText(FText::FromString(scoreText));
 	}
+	else
+	{
+		bInitializeScore = true;
+		HUDScore = Score;
+	}
 }
 
 void ABasePlayerController::SetHUDDefeats(int32 Defeats)
@@ -187,6 +273,11 @@ void ABasePlayerController::SetHUDDefeats(int32 Defeats)
 	{
 		FString defeatsText = FString::Printf(TEXT("%d"), Defeats);
 		BaseHUD->CharacterOverlay->DefeatsAmount->SetText(FText::FromString(defeatsText));
+	}
+	else
+	{
+		bInitializeDefeats = true;
+		HUDDefeats = Defeats;
 	}
 }
 
@@ -246,6 +337,20 @@ void ABasePlayerController::SetHUDMatchCountdown(float CountdownTime)
 
 void ABasePlayerController::SetHUDAnnouncementCountdown(float CountdownTime)
 {
+	if (!BaseHUD)
+	{
+		BaseHUD = Cast<ABaseHUD>(GetHUD());
+	}
+	bool bHUDValid = BaseHUD &&
+		BaseHUD->Announcement &&
+		BaseHUD->Announcement->WarmupTime;
+	if (bHUDValid)
+	{
+		int32 minutes = FMath::FloorToInt(CountdownTime / 60.f);
+		int32 seconds = CountdownTime - minutes * 60;
+		FString countdownText = FString::Printf(TEXT("%02d:%02d"), minutes, seconds);
+		BaseHUD->Announcement->WarmupTime->SetText(FText::FromString(countdownText));
+	}
 }
 
 void ABasePlayerController::SetHUDGrenades(int32 Grenades)
@@ -270,19 +375,52 @@ void ABasePlayerController::SetHUDBlueTeamScore(int32 BlueScore)
 
 float ABasePlayerController::GetServerTime()
 {
-	return 0.0f;
+	return GetWorld()->GetTimeSeconds()+ClientServerDelta;
 }
 
 void ABasePlayerController::OnMatchStateSet(FName State, bool bTeamsMatch)
 {
+	MatchState = State;
+	if (MatchState == MatchState::InProgress)
+	{
+		HandleMatchHasStarted(bTeamsMatch);
+	}
+	else if(MatchState==MatchState::Cooldown)
+	{
+		HandleCooldown();
+	}
 }
 
 void ABasePlayerController::HandleMatchHasStarted(bool bTeamsMatch)
 {
+	if (!BaseHUD)
+	{
+		BaseHUD = Cast<ABaseHUD>(GetHUD());
+	}
+	if (BaseHUD)
+	{
+		BaseHUD->AddCharacterOverlay();
+		if (BaseHUD->Announcement)
+		{
+			BaseHUD->Announcement->SetVisibility(ESlateVisibility::Collapsed);
+		}
+	}
 }
 
 void ABasePlayerController::HandleCooldown()
 {
+	if (!BaseHUD)
+	{
+		BaseHUD = Cast<ABaseHUD>(GetHUD());
+	}
+	if (BaseHUD)
+	{
+		BaseHUD->CharacterOverlay->RemoveFromParent();
+		if (BaseHUD->Announcement)
+		{
+			BaseHUD->Announcement->SetVisibility(ESlateVisibility::HitTestInvisible);
+		}
+	}
 }
 
 void ABasePlayerController::BroadcastElim(APlayerState* Attacker, APlayerState* Victim)
