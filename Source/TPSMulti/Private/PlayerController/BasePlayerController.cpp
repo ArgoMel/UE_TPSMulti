@@ -8,7 +8,7 @@
 #include "PlayerState/BasePlayerState.h"
 #include "HUD/AnnouncementWidget.h"
 #include "Component/CombatComponent.h"
-//#include "GameState/BaseGameState.h"
+#include "GameState/BaseGameState.h"
 //#include "HUD/ReturnToMainMenu.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
@@ -90,11 +90,28 @@ void ABasePlayerController::SetHUDTime()
 	{
 		timeLeft= WarmupTime+MatchTime - GetServerTime()+ LevelStartingTime;
 	}
-
+	else if (MatchState == MatchState::Cooldown)
+	{
+		timeLeft = CooldownTime+WarmupTime + MatchTime - GetServerTime() + LevelStartingTime;
+	}
 	uint32 seconsLeft = FMath::CeilToInt(timeLeft);
+
+	if(HasAuthority())
+	{
+		if(!BaseGameMode)
+		{
+			BaseGameMode = Cast<ABaseGameMode>(UGameplayStatics::GetGameMode(this));
+		}
+		if(BaseGameMode)
+		{
+			seconsLeft = FMath::CeilToInt(BaseGameMode->GetCountdownTime()+LevelStartingTime);
+		}
+	}
+
 	if(CountdownInt!=seconsLeft)
 	{
-		if(MatchState==MatchState::WaitingToStart)
+		if(MatchState==MatchState::WaitingToStart||
+			MatchState==MatchState::Cooldown)
 		{
 			SetHUDAnnouncementCountdown(timeLeft);
 		}
@@ -156,9 +173,10 @@ void ABasePlayerController::ServerCheckMatchState_Implementation()
 	{
 		WarmupTime = gameMode->WarmupTime;
 		MatchTime = gameMode->MatchTime;
+		CooldownTime = gameMode->CooldownTime;
 		LevelStartingTime = gameMode->LevelStartingTime;
 		MatchState = gameMode->GetMatchState();
-		ClientJoinMidgame(MatchState, WarmupTime, MatchTime,0.f ,LevelStartingTime);
+		ClientJoinMidgame(MatchState, WarmupTime, MatchTime, CooldownTime,LevelStartingTime);
 	}
 }
 
@@ -166,6 +184,7 @@ void ABasePlayerController::ClientJoinMidgame_Implementation(FName StateOfMatch,
 {
 	WarmupTime = Warmup;
 	MatchTime = Match;
+	CooldownTime = Cooldown;
 	LevelStartingTime = StartingTime;
 	MatchState = StateOfMatch;
 	OnMatchStateSet(MatchState);
@@ -328,10 +347,18 @@ void ABasePlayerController::SetHUDMatchCountdown(float CountdownTime)
 		BaseHUD->CharacterOverlay->MatchCountdownText;
 	if (bHUDValid)
 	{
+		if (CountdownTime < 0.f)
+		{
+			BaseHUD->CharacterOverlay->MatchCountdownText->SetText(FText::GetEmpty());
+			return;
+		}
+
 		int32 minutes = FMath::FloorToInt(CountdownTime / 60.f);
 		int32 seconds = CountdownTime- minutes*60;
 		FString countdownText = FString::Printf(TEXT("%02d:%02d"), minutes, seconds);
 		BaseHUD->CharacterOverlay->MatchCountdownText->SetText(FText::FromString(countdownText));
+
+		BaseHUD->CharacterOverlay->PlayBlinkTextAnim(CountdownTime < 30.f);
 	}
 }
 
@@ -346,6 +373,12 @@ void ABasePlayerController::SetHUDAnnouncementCountdown(float CountdownTime)
 		BaseHUD->Announcement->WarmupTime;
 	if (bHUDValid)
 	{
+		if(CountdownTime<0.f)
+		{
+			BaseHUD->Announcement->WarmupTime->SetText(FText::GetEmpty());
+			return;
+		}
+
 		int32 minutes = FMath::FloorToInt(CountdownTime / 60.f);
 		int32 seconds = CountdownTime - minutes * 60;
 		FString countdownText = FString::Printf(TEXT("%02d:%02d"), minutes, seconds);
@@ -416,10 +449,53 @@ void ABasePlayerController::HandleCooldown()
 	if (BaseHUD)
 	{
 		BaseHUD->CharacterOverlay->RemoveFromParent();
-		if (BaseHUD->Announcement)
+		if (BaseHUD->Announcement&&
+			BaseHUD->Announcement->AnnouncementText&&
+			BaseHUD->Announcement->InfoText)
 		{
 			BaseHUD->Announcement->SetVisibility(ESlateVisibility::HitTestInvisible);
+			FString announcementText(TEXT("New Match Starts In: "));
+			BaseHUD->Announcement->AnnouncementText->SetText(FText::FromString(announcementText));
+
+			ABaseGameState* baseGameState = Cast<ABaseGameState>(UGameplayStatics::GetGameState(this));
+			ABasePlayerState* basePlayerState = GetPlayerState<ABasePlayerState>();
+			if(baseGameState&&
+				basePlayerState)
+			{
+				TArray<ABasePlayerState*> topPlayers = baseGameState->TopScoringPlayers;
+				FString infoTextStr;
+				if(topPlayers.IsEmpty())
+				{
+					infoTextStr = TEXT("There is no winner.");
+				}
+				else if(topPlayers.Num()==1&& 
+					topPlayers[0]== basePlayerState)
+				{
+					infoTextStr = TEXT("You are the winner!");
+				}
+				else if (topPlayers.Num() == 1 &&
+					topPlayers[0] != basePlayerState)
+				{
+					infoTextStr = FString::Printf(TEXT("Winner: \n%s"), *topPlayers[0]->GetPlayerName());
+				}
+				else if (topPlayers.Num() >1)
+				{
+					infoTextStr = TEXT("Players tied for the win:\n");
+					for(auto& tiedPlayer: topPlayers)
+					{
+						infoTextStr.Append(FString::Printf(TEXT("%s\n"), *tiedPlayer->GetPlayerName()));
+					}
+				}
+				BaseHUD->Announcement->InfoText->SetText(FText::FromString(infoTextStr));
+			}
 		}
+	}
+	ABaseCharacter* baseCharacter = Cast<ABaseCharacter>(GetPawn());
+	if(baseCharacter&&
+		baseCharacter->GetCombat())
+	{
+		baseCharacter->bDisableGameplay = true;
+		baseCharacter->GetCombat()->FireButtonPressed(false);
 	}
 }
 

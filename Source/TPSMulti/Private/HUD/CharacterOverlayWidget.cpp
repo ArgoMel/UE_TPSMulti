@@ -2,6 +2,7 @@
 
 #include "HUD/CharacterOverlayWidget.h"
 #include "Components/SizeBox.h"
+#include "Animation/WidgetAnimation.h"
 
 void UCharacterOverlayWidget::SetAmmoUI(bool ShowUI)
 {
@@ -18,4 +19,26 @@ void UCharacterOverlayWidget::SetAmmoUI(bool ShowUI)
 		AmmoSB->SetVisibility(ESlateVisibility::Collapsed);
 	}
 
+}
+
+void UCharacterOverlayWidget::PlayBlinkTextAnim(bool PlayAnim)
+{
+	if(!BlinkTextAnim)
+	{
+		return;
+	}
+	if(PlayAnim)
+	{
+		if (!IsAnimationPlaying(BlinkTextAnim))
+		{
+			PlayAnimation(BlinkTextAnim);
+		}
+	}
+	else
+	{
+		if (IsAnimationPlaying(BlinkTextAnim))
+		{
+			StopAnimation(BlinkTextAnim);
+		}
+	}
 }

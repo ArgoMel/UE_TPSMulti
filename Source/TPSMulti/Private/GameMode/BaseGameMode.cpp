@@ -4,7 +4,7 @@
 #include "Character/BaseCharacter.h"
 #include "PlayerController/BasePlayerController.h"
 #include "PlayerState/BasePlayerState.h"
-//#include "GameState/BlasterGameState.h"
+#include "GameState/BaseGameState.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerStart.h"
 
@@ -56,6 +56,14 @@ void ABaseGameMode::Tick(float DeltaTime)
 			SetMatchState(MatchState::Cooldown);
 		}
 	}
+	else if (MatchState == MatchState::Cooldown)
+	{
+		CountdownTime = CooldownTime + WarmupTime + MatchTime - GetWorld()->GetTimeSeconds() + LevelStartingTime;
+		if (CountdownTime <= 0.f)
+		{
+			RestartGame();
+		}
+	}
 }
 
 void ABaseGameMode::PlayerEliminated(ABaseCharacter* ElimmedCharacter, ABasePlayerController* VictimController, ABasePlayerController* AttackerController)
@@ -64,10 +72,15 @@ void ABaseGameMode::PlayerEliminated(ABaseCharacter* ElimmedCharacter, ABasePlay
 	{
 		ABasePlayerState* attackerPlayerState =Cast<ABasePlayerState>(AttackerController->PlayerState);
 		ABasePlayerState* victimPlayerState =Cast<ABasePlayerState>(VictimController->PlayerState);
+		ABaseGameState* baseGameState = GetGameState<ABaseGameState>();
+
 		if(attackerPlayerState&&
-			attackerPlayerState!= victimPlayerState)
+			attackerPlayerState!= victimPlayerState&&
+			baseGameState)
 		{
 			attackerPlayerState->AddToScore(1.f);
+			baseGameState->UpdateTopScore(attackerPlayerState);
+
 		}
 		if(victimPlayerState)
 		{

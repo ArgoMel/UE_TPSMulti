@@ -84,8 +84,10 @@ void UBaseAnimInstance::NativeUpdateAnimation(float DeltaTime)
 	{
 		bUseFABRIK = !BaseCharacter->IsLocallyReloading();
 	}
-	bUseAimOffsets = BaseCharacter->GetCombatState() == ECombatState::ECS_Unoccupied && !BaseCharacter->GetDisableGameplay();
-	bTransformRightHand = BaseCharacter->GetCombatState() == ECombatState::ECS_Unoccupied && !BaseCharacter->GetDisableGameplay();
+	bUseAimOffsets = BaseCharacter->GetCombatState() == ECombatState::ECS_Unoccupied &&
+					!BaseCharacter->GetDisableGameplay();
+	bTransformRightHand = BaseCharacter->GetCombatState() == ECombatState::ECS_Unoccupied && 
+						!BaseCharacter->GetDisableGameplay();
 }
 
 void UBaseAnimInstance::AnimNotify_FinishReload()

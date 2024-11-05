@@ -218,20 +218,7 @@ void ABaseCharacter::BeginPlay()
 void ABaseCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if(GetLocalRole()>ENetRole::ROLE_SimulatedProxy&&
-		IsLocallyControlled())
-	{
-		AimOffset(DeltaTime);
-	}
-	else
-	{
-		TimeSinceLastMovementReplication += DeltaTime;
-		if(TimeSinceLastMovementReplication>0.25f)
-		{
-			OnRep_ReplicatedMovement();
-		}
-		CalculateAO_Pitch();
-	}
+	RotateInPlace(DeltaTime);
 	HideCameraIfCharacterClose();
 	PollInit();
 }
@@ -243,6 +230,10 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 void ABaseCharacter::Jump()
 {
+	if (bDisableGameplay)
+	{
+		return;
+	}
 	if(bIsCrouched)
 	{
 		UnCrouch();
@@ -266,6 +257,13 @@ void ABaseCharacter::Destroyed()
 	if (ElimBotComponent)
 	{
 		ElimBotComponent->DestroyComponent();
+	}
+
+	if(Combat&&
+		Combat->EquippedWeapon
+		&&(BaseGameMode && BaseGameMode->GetMatchState() != MatchState::InProgress))
+	{
+		Combat->EquippedWeapon->Destroy();
 	}
 }
 
@@ -407,21 +405,27 @@ void ABaseCharacter::LookAround(FVector2D Value)
 
 void ABaseCharacter::EquipButtonPressed()
 {
-	if(Combat)
+	if (bDisableGameplay ||
+		!Combat)
 	{
-		if (HasAuthority())
-		{
-			Combat->EquipWeapon(OverlappingWeapon);
-		}
-		else
-		{
-			ServerEquipButtonPressed();
-		}
+		return;
+	}
+	if (HasAuthority())
+	{
+		Combat->EquipWeapon(OverlappingWeapon);
+	}
+	else
+	{
+		ServerEquipButtonPressed();
 	}
 }
 
 void ABaseCharacter::CrouchButtonPressed()
 {
+	if (bDisableGameplay)
+	{
+		return;
+	}
 	if(bIsCrouched)
 	{
 		UnCrouch();
@@ -653,6 +657,26 @@ void ABaseCharacter::PollInit()
 
 void ABaseCharacter::RotateInPlace(float DeltaTime)
 {
+	if(bDisableGameplay)
+	{
+		bUseControllerRotationYaw = false;
+		TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+		return;
+	}
+	if (GetLocalRole() > ENetRole::ROLE_SimulatedProxy &&
+		IsLocallyControlled())
+	{
+		AimOffset(DeltaTime);
+	}
+	else
+	{
+		TimeSinceLastMovementReplication += DeltaTime;
+		if (TimeSinceLastMovementReplication > 0.25f)
+		{
+			OnRep_ReplicatedMovement();
+		}
+		CalculateAO_Pitch();
+	}
 }
 
 void ABaseCharacter::PlayFireMontage(bool bAiming)
@@ -730,11 +754,10 @@ void ABaseCharacter::MulticastElim_Implementation(bool bPlayerLeftGame)
 	}
 	StartDissolve();
 
-	GetCharacterMovement()->DisableMovement();
-	GetCharacterMovement()->StopMovementImmediately();
-	if(BasePlayerController)
+	bDisableGameplay = true;
+	if(Combat)
 	{
-		DisableInput(BasePlayerController);
+		Combat->FireButtonPressed(false);
 	}
 
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);

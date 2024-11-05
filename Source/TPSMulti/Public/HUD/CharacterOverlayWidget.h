@@ -66,6 +66,10 @@ public:
 	//UPROPERTY(meta = (BindWidgetAnim), Transient)
 	//UWidgetAnimation* HighPingAnimation;
 
+	UPROPERTY(meta = (BindWidgetAnim), Transient)
+	UWidgetAnimation* BlinkTextAnim;
+
 public:
 	void SetAmmoUI(bool ShowUI);
+	void PlayBlinkTextAnim(bool PlayAnim);
 };
