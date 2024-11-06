@@ -432,7 +432,10 @@ void ABasePlayerController::HandleMatchHasStarted(bool bTeamsMatch)
 	}
 	if (BaseHUD)
 	{
-		BaseHUD->AddCharacterOverlay();
+		if(!BaseHUD->CharacterOverlay)
+		{
+			BaseHUD->AddCharacterOverlay();
+		}
 		if (BaseHUD->Announcement)
 		{
 			BaseHUD->Announcement->SetVisibility(ESlateVisibility::Collapsed);

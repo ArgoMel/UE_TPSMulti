@@ -73,19 +73,44 @@ void AProjectile::Destroyed()
 
 void AProjectile::StartDestroyTimer()
 {
+	GetWorld()->GetTimerManager().SetTimer(DestroyTimer,this, &ThisClass::DestroyTimerFinished, DestroyTime);
 }
 
 void AProjectile::DestroyTimerFinished()
 {
+	Destroy();
 }
 
 void AProjectile::SpawnTrailSystem()
 {
+	if (TrailSystem)
+	{
+		TrailSystemComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(
+			TrailSystem,
+			GetRootComponent(),
+			FName(),
+			GetActorLocation(),
+			GetActorRotation(),
+			EAttachLocation::KeepWorldPosition,
+			false
+		);
+	}
 }
 
 void AProjectile::ExplodeDamage()
 {
+	APawn* firingPawn = GetInstigator();
+	if (firingPawn &&
+		HasAuthority())
+	{
+		AController* firingController = firingPawn->GetController();
+		if (firingController)
+		{
+			UGameplayStatics::ApplyRadialDamageWithFalloff(this, Damage, 10.f, GetActorLocation(), DamageInnerRadius, DamageOuterRadius, 1.f, UDamageType::StaticClass(), TArray<AActor*>(), this, firingController);
+		}
+	}
 }
+
 void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	HitTarget = OtherActor;

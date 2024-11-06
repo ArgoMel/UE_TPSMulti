@@ -755,6 +755,7 @@ void ABaseCharacter::MulticastElim_Implementation(bool bPlayerLeftGame)
 	StartDissolve();
 
 	bDisableGameplay = true;
+	GetCharacterMovement()->DisableMovement();
 	if(Combat)
 	{
 		Combat->FireButtonPressed(false);
