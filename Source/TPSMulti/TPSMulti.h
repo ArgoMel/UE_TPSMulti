@@ -65,6 +65,7 @@ enum class EWeaponType : uint8
 
 	EWT_MAX UMETA(DisplayName = "DefaultMAX")
 };
+ENUM_RANGE_BY_COUNT(EWeaponType, EWeaponType::EWT_MAX);
 
 UENUM(BlueprintType)
 enum class ETurningInPlace : uint8

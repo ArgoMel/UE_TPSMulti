@@ -303,11 +303,6 @@ FVector AWeapon::TraceEndWithScatter(const FVector& HitTarget)
 	const FVector endLoc = sphereCenter + randVec;
 	const FVector toEndLoc = endLoc - traceStart;
 
-	/*
-	DrawDebugSphere(GetWorld(), SphereCenter, SphereRadius, 12, FColor::Red, true);
-	DrawDebugSphere(GetWorld(), EndLoc, 4.f, 12, FColor::Orange, true);
-	DrawDebugLine(GetWorld(), TraceStart, FVector(TraceStart + ToEndLoc * TRACE_LENGTH / ToEndLoc.Size()), FColor::Cyan, true);*/
-
 	return FVector(traceStart + toEndLoc * TraceLength / toEndLoc.Size());
 }
 

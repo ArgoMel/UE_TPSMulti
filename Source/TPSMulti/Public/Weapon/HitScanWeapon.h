@@ -13,21 +13,14 @@ class TPSMULTI_API AHitScanWeapon : public AWeapon
 protected:
 	virtual void Fire(const FVector& HitTarget) override;
 
-private:
-	UPROPERTY(EditAnywhere)
+protected:
+	UPROPERTY(EditAnywhere, Category = "Weapon|HitScan")
 	UParticleSystem* BeamParticles;
 
-	UPROPERTY(EditAnywhere)
-	UParticleSystem* MuzzleFlash;
-
-	UPROPERTY(EditAnywhere)
-	USoundCue* FireSound;
-
-protected:
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Weapon|HitScan")
 	UParticleSystem* ImpactParticles;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Weapon|HitScan")
 	USoundCue* HitSound;
 
 protected:

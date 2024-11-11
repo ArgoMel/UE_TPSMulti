@@ -71,15 +71,6 @@ void AHitScanWeapon::Fire(const FVector& HitTarget)
 		{
 			UGameplayStatics::PlaySoundAtLocation(this,	HitSound, fireHit.ImpactPoint);
 		}
-
-		if (MuzzleFlash)
-		{
-			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), MuzzleFlash, socketTransform);
-		}
-		if (FireSound)
-		{
-			UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
-		}
 	}
 }
 

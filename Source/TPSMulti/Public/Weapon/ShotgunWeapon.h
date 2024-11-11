@@ -8,9 +8,8 @@ UCLASS()
 class TPSMULTI_API AShotgunWeapon : public AHitScanWeapon
 {
 	GENERATED_BODY()
-private:
-	UPROPERTY(EditAnywhere, Category = "Weapon Scatter")
-	uint32 NumberOfPellets = 10;
+public:
+	AShotgunWeapon();
 
 public:
 	virtual void FireShotgun(const TArray<FVector_NetQuantize>& HitTargets);
