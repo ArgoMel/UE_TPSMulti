@@ -162,6 +162,12 @@ void AWeapon::OnEquipped()
 	WeaponMesh->SetSimulatePhysics(false);
 	WeaponMesh->SetEnableGravity(false);
 	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	if(WeaponType==EWeaponType::EWT_SubmachineGun)
+	{
+		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		WeaponMesh->SetEnableGravity(true);
+		WeaponMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+	}
 }
 
 void AWeapon::OnDropped()
@@ -173,6 +179,9 @@ void AWeapon::OnDropped()
 	WeaponMesh->SetSimulatePhysics(true);
 	WeaponMesh->SetEnableGravity(true);
 	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	WeaponMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
+	WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+	WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 }
 
 void AWeapon::OnEquippedSecondary()
@@ -279,7 +288,27 @@ void AWeapon::AddAmmo(int32 AmmoToAdd)
 
 FVector AWeapon::TraceEndWithScatter(const FVector& HitTarget)
 {
-	return FVector();
+	const USkeletalMeshSocket* muzzleFlashSocket = GetWeaponMesh()->GetSocketByName(SOCKET_MUZZLEFLASH);
+	if (muzzleFlashSocket == nullptr)
+	{
+		return FVector();
+	}
+
+	const FTransform socketTransform = muzzleFlashSocket->GetSocketTransform(GetWeaponMesh());
+	const FVector traceStart = socketTransform.GetLocation();
+
+	const FVector toTargetNormalized = (HitTarget - traceStart).GetSafeNormal();
+	const FVector sphereCenter = traceStart + toTargetNormalized * DistanceToSphere;
+	const FVector randVec = UKismetMathLibrary::RandomUnitVector() * FMath::FRandRange(0.f, SphereRadius);
+	const FVector endLoc = sphereCenter + randVec;
+	const FVector toEndLoc = endLoc - traceStart;
+
+	/*
+	DrawDebugSphere(GetWorld(), SphereCenter, SphereRadius, 12, FColor::Red, true);
+	DrawDebugSphere(GetWorld(), EndLoc, 4.f, 12, FColor::Orange, true);
+	DrawDebugLine(GetWorld(), TraceStart, FVector(TraceStart + ToEndLoc * TRACE_LENGTH / ToEndLoc.Size()), FColor::Cyan, true);*/
+
+	return FVector(traceStart + toEndLoc * TraceLength / toEndLoc.Size());
 }
 
 void AWeapon::EnableCustomDepth(bool bEnable)

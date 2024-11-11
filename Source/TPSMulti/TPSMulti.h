@@ -13,6 +13,7 @@ constexpr float TraceLength = 80000.f;
 #define SOCKET_AMMOEJECT FName(TEXT("AmmoEject"))
 
 #define BONE_RIGHTHAND FName(TEXT("hand_r"))
+#define BONE_HEAD FName(TEXT("head"))
 
 #define SECTION_RIFLEAIM FName(TEXT("RifleAim"))
 #define SECTION_RIFLEHIP FName(TEXT("RifleHip"))

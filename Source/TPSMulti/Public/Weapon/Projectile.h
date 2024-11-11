@@ -79,7 +79,7 @@ public:
 	float InitialSpeed = 15000;
 
 	// Only set this for Grenades and Rockets
-	UPROPERTY(EditAnywhere)
+	//UPROPERTY(EditAnywhere)
 	float Damage = 20.f;
 
 	// Doesn't matter for Grenades and Rockets
