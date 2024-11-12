@@ -88,5 +88,8 @@ private:
 
 protected:
 	UFUNCTION()
-	void AnimNotify_FinishReload();
+	void AnimNotify_ReloadFinished();
+
+	UFUNCTION()
+	void AnimNotify_Shell();
 };

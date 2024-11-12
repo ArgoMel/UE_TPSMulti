@@ -90,11 +90,15 @@ void UBaseAnimInstance::NativeUpdateAnimation(float DeltaTime)
 						!BaseCharacter->GetDisableGameplay();
 }
 
-void UBaseAnimInstance::AnimNotify_FinishReload()
+void UBaseAnimInstance::AnimNotify_ReloadFinished()
 {
 	if(IsValid(BaseCharacter)&&
 		IsValid(BaseCharacter->GetCombat()))
 	{
 		BaseCharacter->GetCombat()->FinishReloading();
 	}
+}
+
+void UBaseAnimInstance::AnimNotify_Shell()
+{
 }
