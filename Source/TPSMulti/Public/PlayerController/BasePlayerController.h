@@ -167,4 +167,7 @@ public:
 	void HandleCooldown();
 
 	void BroadcastElim(APlayerState* Attacker, APlayerState* Victim);
+
+	UFUNCTION(BlueprintPure)
+	ABaseHUD* GetBaseHUD();
 };

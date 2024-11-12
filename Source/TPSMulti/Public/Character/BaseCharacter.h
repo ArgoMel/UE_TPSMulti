@@ -372,4 +372,6 @@ public:
 	FORCEINLINE bool IsHoldingTheFlag() const;
 	ETeam GetTeam();
 	void SetHoldingTheFlag(bool bHolding);
+	UFUNCTION(BlueprintPure)
+	ABasePlayerController* GetBasePlayerController();
 };

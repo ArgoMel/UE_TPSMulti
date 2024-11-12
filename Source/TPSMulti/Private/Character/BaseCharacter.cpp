@@ -621,12 +621,8 @@ void ABaseCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const UDa
 		ABaseGameMode* baseGameMode = GetWorld()->GetAuthGameMode<ABaseGameMode>();
 		if (baseGameMode)
 		{
-			if(!BasePlayerController)
-			{
-				BasePlayerController = Cast<ABasePlayerController>(Controller);
-			}
 			ABasePlayerController* attackerController= Cast<ABasePlayerController>(InstigatorController);
-			baseGameMode->PlayerEliminated(this,BasePlayerController, attackerController);
+			baseGameMode->PlayerEliminated(this, GetBasePlayerController(), attackerController);
 		}
 	}
 }
@@ -644,14 +640,11 @@ void ABaseCharacter::PollInit()
 	}
 	if (!BasePlayerController)
 	{
-		BasePlayerController = Cast<ABasePlayerController>(Controller);
-		if (BasePlayerController)
-		{
-			SpawDefaultWeapon();
-			UpdateHUDAmmo();
-			UpdateHUDHealth();
-			UpdateHUDShield();
-		}
+		GetBasePlayerController();
+		SpawDefaultWeapon();
+		UpdateHUDAmmo();
+		UpdateHUDHealth();
+		UpdateHUDShield();
 	}
 }
 
@@ -773,15 +766,19 @@ void ABaseCharacter::MulticastElim_Implementation(bool bPlayerLeftGame)
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, ElimBotSound, GetActorLocation());
 	}
+	if(IsLocallyControlled()&&
+		Combat&&
+		Combat->bAiming&&
+		Combat->EquippedWeapon&&
+		Combat->EquippedWeapon->GetWeaponType()==EWeaponType::EWT_SniperRifle)
+	{
+		ShowSniperScopeWidget(false);
+	}
 }
 
 void ABaseCharacter::UpdateHUDHealth()
 {
-	if(!BasePlayerController)
-	{
-		BasePlayerController =Cast<ABasePlayerController>(Controller);
-	}
-	if (BasePlayerController)
+	if (GetBasePlayerController())
 	{
 		BasePlayerController->SetHUDHealth(Health, MaxHealth);
 	}
@@ -793,11 +790,7 @@ void ABaseCharacter::UpdateHUDShield()
 
 void ABaseCharacter::UpdateHUDAmmo()
 {
-	if (!BasePlayerController)
-	{
-		BasePlayerController = Cast<ABasePlayerController>(Controller);
-	}
-	if (BasePlayerController)
+	if (GetBasePlayerController())
 	{
 		if(GetEquippedWeapon())
 		{
@@ -902,4 +895,13 @@ ETeam ABaseCharacter::GetTeam()
 
 void ABaseCharacter::SetHoldingTheFlag(bool bHolding)
 {
+}
+
+ABasePlayerController* ABaseCharacter::GetBasePlayerController()
+{
+	if (!BasePlayerController)
+	{
+		BasePlayerController = Cast<ABasePlayerController>(Controller);
+	}
+	return BasePlayerController;
 }

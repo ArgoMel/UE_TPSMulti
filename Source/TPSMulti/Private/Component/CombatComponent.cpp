@@ -203,7 +203,10 @@ void UCombatComponent::UpdateAmmoValues()
 	int32 reloadAmount = AmountToReload();
 	if (CarriedAmmoMap.Contains(EquippedWeapon->GetWeaponType()))
 	{
-		CarriedAmmoMap[EquippedWeapon->GetWeaponType()] -= reloadAmount;
+		if(CarriedAmmoMap[EquippedWeapon->GetWeaponType()]!=INF_AMMO)
+		{
+			CarriedAmmoMap[EquippedWeapon->GetWeaponType()] -= reloadAmount;
+		}
 		CarriedAmmo = CarriedAmmoMap[EquippedWeapon->GetWeaponType()];
 	}
 	if (!Controller)
@@ -235,18 +238,25 @@ void UCombatComponent::OnRep_HoldingTheFlag()
 
 void UCombatComponent::SetAiming(bool bIsAiming)
 {
+	if(!Character||
+		!EquippedWeapon)
+	{
+		return;
+	}
 	bAiming = bIsAiming;
 	ServerSetAiming(bIsAiming);
-	if (Character)
+	if (bIsAiming)
 	{
-		if(bIsAiming)
-		{
-			Character->GetCharacterMovement()->MaxWalkSpeed = AimWalkSpeed;
-		}
-		else
-		{
-			Character->GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
-		}
+		Character->GetCharacterMovement()->MaxWalkSpeed = AimWalkSpeed;
+	}
+	else
+	{
+		Character->GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
+	}
+	if(Character->IsLocallyControlled()&&
+		EquippedWeapon->GetWeaponType()==EWeaponType::EWT_SniperRifle)
+	{
+		Character->ShowSniperScopeWidget(bIsAiming);
 	}
 }
 
@@ -587,6 +597,10 @@ int32 UCombatComponent::AmountToReload()
 	if(CarriedAmmoMap.Contains(EquippedWeapon->GetWeaponType()))
 	{
 		int32 amountCarried = CarriedAmmoMap[EquippedWeapon->GetWeaponType()];
+		if(amountCarried==INF_AMMO)
+		{
+			amountCarried = EquippedWeapon->GetMagCapacity();
+		}
 		int32 least = FMath::Min(roomInMag,amountCarried);
 		return FMath::Clamp(roomInMag,0,least);
 	}
@@ -709,7 +723,7 @@ void UCombatComponent::SwapWeapons()
 
 void UCombatComponent::Reload()
 {
-	if (CarriedAmmo > 0 && 
+	if ((CarriedAmmo > 0|| CarriedAmmo==INF_AMMO) &&
 		CombatState == ECombatState::ECS_Unoccupied && 
 		EquippedWeapon && 
 		!EquippedWeapon->IsFull() &&

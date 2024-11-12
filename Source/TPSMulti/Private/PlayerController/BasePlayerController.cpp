@@ -37,7 +37,7 @@ void ABasePlayerController::OnPossess(APawn* InPawn)
 void ABasePlayerController::BeginPlay()
 {
 	Super::BeginPlay();
-	BaseHUD = Cast<ABaseHUD>(GetHUD());
+	GetBaseHUD();
 	ServerCheckMatchState();
 }
 
@@ -231,11 +231,8 @@ FString ABasePlayerController::GetTeamsInfoText(ABlasterGameState* BlasterGameSt
 
 void ABasePlayerController::SetHUDHealth(float Health, float MaxHealth)
 {
-	if(!BaseHUD)
-	{
-		BaseHUD = Cast<ABaseHUD>(GetHUD());
-	}
-	bool bHUDValid = BaseHUD &&
+
+	bool bHUDValid = GetBaseHUD() &&
 		BaseHUD->CharacterOverlay &&
 		BaseHUD->CharacterOverlay->HealthBar &&
 		BaseHUD->CharacterOverlay->HealthText;
@@ -260,11 +257,7 @@ void ABasePlayerController::SetHUDShield(float Shield, float MaxShield)
 
 void ABasePlayerController::SetHUDScore(float Score)
 {
-	if (!BaseHUD)
-	{
-		BaseHUD = Cast<ABaseHUD>(GetHUD());
-	}
-	bool bHUDValid = BaseHUD &&
+	bool bHUDValid = GetBaseHUD() &&
 		BaseHUD->CharacterOverlay &&
 		BaseHUD->CharacterOverlay->ScoreAmount;
 	if (bHUDValid)
@@ -281,11 +274,7 @@ void ABasePlayerController::SetHUDScore(float Score)
 
 void ABasePlayerController::SetHUDDefeats(int32 Defeats)
 {
-	if (!BaseHUD)
-	{
-		BaseHUD = Cast<ABaseHUD>(GetHUD());
-	}
-	bool bHUDValid = BaseHUD &&
+	bool bHUDValid = GetBaseHUD() &&
 		BaseHUD->CharacterOverlay &&
 		BaseHUD->CharacterOverlay->DefeatsAmount;
 	if (bHUDValid)
@@ -302,15 +291,10 @@ void ABasePlayerController::SetHUDDefeats(int32 Defeats)
 
 void ABasePlayerController::SetHUDWeaponAmmo(int32 Ammo, EWeaponType WeaponType)
 {
-	if (!BaseHUD)
-	{
-		BaseHUD = Cast<ABaseHUD>(GetHUD());
-	}
-	bool bHUDValid = BaseHUD &&
+	if (GetBaseHUD() &&
 		BaseHUD->CharacterOverlay &&
-		BaseHUD->CharacterOverlay->WeaponAmmoAmount&&
-		BaseHUD->CharacterOverlay->WeaponTypeText;
-	if (bHUDValid)
+		BaseHUD->CharacterOverlay->WeaponAmmoAmount &&
+		BaseHUD->CharacterOverlay->WeaponTypeText)
 	{
 		BaseHUD->CharacterOverlay->SetAmmoUI(Ammo != NO_WEAPON);
 		FString ammoText = FString::Printf(TEXT("%d"), Ammo);
@@ -321,28 +305,23 @@ void ABasePlayerController::SetHUDWeaponAmmo(int32 Ammo, EWeaponType WeaponType)
 
 void ABasePlayerController::SetHUDCarriedAmmo(int32 Ammo)
 {
-	if (!BaseHUD)
-	{
-		BaseHUD = Cast<ABaseHUD>(GetHUD());
-	}
-	bool bHUDValid = BaseHUD &&
+	if (GetBaseHUD() &&
 		BaseHUD->CharacterOverlay &&
-		BaseHUD->CharacterOverlay->CarriedAmmoAmount;
-	if (bHUDValid)
+		BaseHUD->CharacterOverlay->CarriedAmmoAmount)
 	{
 		BaseHUD->CharacterOverlay->SetAmmoUI(Ammo != NO_WEAPON);
 		FString ammoText = FString::Printf(TEXT("%d"), Ammo);
+		if(Ammo==INF_AMMO)
+		{
+			ammoText = TEXT("INF");
+		}
 		BaseHUD->CharacterOverlay->CarriedAmmoAmount->SetText(FText::FromString(ammoText));
 	}
 }
 
 void ABasePlayerController::SetHUDMatchCountdown(float CountdownTime)
 {
-	if (!BaseHUD)
-	{
-		BaseHUD = Cast<ABaseHUD>(GetHUD());
-	}
-	bool bHUDValid = BaseHUD &&
+	bool bHUDValid = GetBaseHUD() &&
 		BaseHUD->CharacterOverlay &&
 		BaseHUD->CharacterOverlay->MatchCountdownText;
 	if (bHUDValid)
@@ -364,11 +343,7 @@ void ABasePlayerController::SetHUDMatchCountdown(float CountdownTime)
 
 void ABasePlayerController::SetHUDAnnouncementCountdown(float CountdownTime)
 {
-	if (!BaseHUD)
-	{
-		BaseHUD = Cast<ABaseHUD>(GetHUD());
-	}
-	bool bHUDValid = BaseHUD &&
+	bool bHUDValid = GetBaseHUD() &&
 		BaseHUD->Announcement &&
 		BaseHUD->Announcement->WarmupTime;
 	if (bHUDValid)
@@ -426,11 +401,7 @@ void ABasePlayerController::OnMatchStateSet(FName State, bool bTeamsMatch)
 
 void ABasePlayerController::HandleMatchHasStarted(bool bTeamsMatch)
 {
-	if (!BaseHUD)
-	{
-		BaseHUD = Cast<ABaseHUD>(GetHUD());
-	}
-	if (BaseHUD)
+	if (GetBaseHUD())
 	{
 		if(!BaseHUD->CharacterOverlay)
 		{
@@ -445,11 +416,7 @@ void ABasePlayerController::HandleMatchHasStarted(bool bTeamsMatch)
 
 void ABasePlayerController::HandleCooldown()
 {
-	if (!BaseHUD)
-	{
-		BaseHUD = Cast<ABaseHUD>(GetHUD());
-	}
-	if (BaseHUD)
+	if (GetBaseHUD())
 	{
 		BaseHUD->CharacterOverlay->RemoveFromParent();
 		if (BaseHUD->Announcement&&
@@ -504,4 +471,13 @@ void ABasePlayerController::HandleCooldown()
 
 void ABasePlayerController::BroadcastElim(APlayerState* Attacker, APlayerState* Victim)
 {
+}
+
+ABaseHUD* ABasePlayerController::GetBaseHUD()
+{
+	if (!BaseHUD)
+	{
+		BaseHUD = Cast<ABaseHUD>(GetHUD());
+	}
+	return BaseHUD;
 }

@@ -3,6 +3,7 @@
 #pragma once
 #include "CoreMinimal.h"
 
+constexpr int32 TopHud = 1;
 constexpr float TraceLength = 80000.f;
 
 #define ECC_SkeletalMesh ECollisionChannel::ECC_GameTraceChannel1

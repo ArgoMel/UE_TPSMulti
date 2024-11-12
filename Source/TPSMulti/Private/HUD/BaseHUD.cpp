@@ -18,7 +18,7 @@ void ABaseHUD::DrawHUD()
 {
 	Super::DrawHUD();
 	FVector2D viewportSize;
-	if(GEngine)
+	if(GEngine&& bDrawCrosshair)
 	{
 		GEngine->GameViewport->GetViewportSize(viewportSize);
 		const FVector2D viewportCenter(viewportSize.X/2.f,viewportSize.Y/2.f);
@@ -65,7 +65,7 @@ void ABaseHUD::AddCharacterOverlay()
 	if (playerController && CharacterOverlayClass)
 	{
 		CharacterOverlay = CreateWidget<UCharacterOverlayWidget>(playerController, CharacterOverlayClass);
-		CharacterOverlay->AddToViewport();
+		CharacterOverlay->AddToViewport(TopHud);
 	}
 }
 
@@ -75,7 +75,7 @@ void ABaseHUD::AddAnnouncement()
 	if (playerController && AnnouncementClass)
 	{
 		Announcement = CreateWidget<UAnnouncementWidget>(playerController, AnnouncementClass);
-		Announcement->AddToViewport();
+		Announcement->AddToViewport(TopHud);
 	}
 }
 

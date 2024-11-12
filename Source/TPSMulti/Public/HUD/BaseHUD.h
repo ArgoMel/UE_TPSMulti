@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
-#include "CoreMinimal.h"
+#include <TPSMulti/TPSMulti.h>
 #include "GameFramework/HUD.h"
 #include "BaseHUD.generated.h"
 
@@ -69,6 +69,8 @@ private:
 	//UPROPERTY()
 	//TArray<UElimAnnouncement*> ElimMessages;
 
+	bool bDrawCrosshair = true;
+
 protected:
 	UPROPERTY(EditAnywhere, Category = "Player Stats")
 	TSubclassOf<UUserWidget> CharacterOverlayClass;
@@ -93,4 +95,6 @@ public:
 	void AddElimAnnouncement(FString Attacker, FString Victim);
 
 	FORCEINLINE void SetHUDPackage(const FHUDPackage& Package) { HUDPackage = Package; }
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE void SetDrawCrosshair(bool CanDraw) { bDrawCrosshair = CanDraw; }
 };

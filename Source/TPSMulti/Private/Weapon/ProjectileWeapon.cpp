@@ -10,7 +10,9 @@ void AProjectileWeapon::Fire(const FVector& HitTarget)
 	APawn* instigatorPawn = Cast<APawn>(GetOwner());
 	const USkeletalMeshSocket* muzzleFlashSocket = GetWeaponMesh()->GetSocketByName(SOCKET_MUZZLEFLASH);
 	UWorld* world = GetWorld();
-	if (muzzleFlashSocket && world)
+	if (muzzleFlashSocket && 
+		world&&
+		ProjectileClass)
 	{
 		FTransform socketTransform = muzzleFlashSocket->GetSocketTransform(GetWeaponMesh());
 		// From muzzle flash socket to hit location from TraceUnderCrosshairs
