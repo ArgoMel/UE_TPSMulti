@@ -4,7 +4,7 @@
 #include "Weapon/Weapon.h"
 #include "Character/BaseCharacter.h"
 #include "PlayerController/BasePlayerController.h"
-//#include "Character/BlasterAnimInstance.h"
+#include "Character/BaseAnimInstance.h"
 //#include "Weapon/Projectile.h"
 #include "Weapon/ShotgunWeapon.h"
 #include "Net/UnrealNetwork.h"
@@ -222,6 +222,35 @@ void UCombatComponent::UpdateAmmoValues()
 
 void UCombatComponent::UpdateShotgunAmmoValues()
 {
+	if (!Character ||
+		!EquippedWeapon)
+	{
+		return;
+	}
+
+	if (CarriedAmmoMap.Contains(EquippedWeapon->GetWeaponType()))
+	{
+		if (CarriedAmmoMap[EquippedWeapon->GetWeaponType()] != INF_AMMO)
+		{
+			CarriedAmmoMap[EquippedWeapon->GetWeaponType()] -= 1;
+		}
+		CarriedAmmo = CarriedAmmoMap[EquippedWeapon->GetWeaponType()];
+	}
+	if (!Controller)
+	{
+		Controller = Cast<ABasePlayerController>(Character->Controller);
+	}
+	if (Controller)
+	{
+		Controller->SetHUDCarriedAmmo(CarriedAmmo);
+	}
+	EquippedWeapon->AddAmmo(1);
+	bCanFire = true;
+	if(EquippedWeapon->IsFull()||
+		CarriedAmmo==0)
+	{
+		JumpToShotgunEnd();
+	}
 }
 
 void UCombatComponent::OnRep_Grenades()
@@ -772,10 +801,20 @@ void UCombatComponent::FireButtonPressed(bool bPressed)
 
 void UCombatComponent::ShotgunShellReload()
 {
+	if(Character&&
+		Character->HasAuthority())
+	{
+		UpdateShotgunAmmoValues();
+	}	
 }
 
 void UCombatComponent::JumpToShotgunEnd()
 {
+	UAnimInstance* animInstance = Character->GetMesh()->GetAnimInstance();
+	if (animInstance && Character->GetReloadMontage())
+	{
+		animInstance->Montage_JumpToSection(SECTION_SHOTGUNEND);
+	}
 }
 
 void UCombatComponent::ThrowGrenadeFinished()

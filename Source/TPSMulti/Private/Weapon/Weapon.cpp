@@ -171,6 +171,7 @@ void AWeapon::OnEquipped()
 		WeaponMesh->SetEnableGravity(true);
 		WeaponMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 	}
+	EnableCustomDepth(false);
 }
 
 void AWeapon::OnDropped()
@@ -185,6 +186,9 @@ void AWeapon::OnDropped()
 	WeaponMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
 	WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
 	WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+	WeaponMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_BLUE);
+	WeaponMesh->MarkRenderStateDirty();
+	EnableCustomDepth(true);
 }
 
 void AWeapon::OnEquippedSecondary()
@@ -311,6 +315,10 @@ FVector AWeapon::TraceEndWithScatter(const FVector& HitTarget)
 
 void AWeapon::EnableCustomDepth(bool bEnable)
 {
+	if(WeaponMesh)
+	{
+		WeaponMesh->SetRenderCustomDepth(bEnable);
+	}
 }
 
 void AWeapon::SetWeaponState(EWeaponState State)

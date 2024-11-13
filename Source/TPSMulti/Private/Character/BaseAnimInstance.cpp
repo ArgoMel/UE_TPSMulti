@@ -101,4 +101,9 @@ void UBaseAnimInstance::AnimNotify_ReloadFinished()
 
 void UBaseAnimInstance::AnimNotify_Shell()
 {
+	if (IsValid(BaseCharacter) &&
+		IsValid(BaseCharacter->GetCombat()))
+	{
+		BaseCharacter->GetCombat()->ShotgunShellReload();
+	}
 }

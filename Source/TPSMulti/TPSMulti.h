@@ -22,6 +22,7 @@ constexpr float TraceLength = 80000.f;
 #define SECTION_FROMRIGHT FName(TEXT("FromRight"))
 #define SECTION_FROMBACK FName(TEXT("FromBack"))
 #define SECTION_FROMFRONT FName(TEXT("FromFront"))
+#define SECTION_SHOTGUNEND FName(TEXT("ShotgunEnd"))
 
 #define MAT_PARAM_DISSOVE FName(TEXT("Dissolve"))
 #define MAT_PARAM_DISSOVEGLOW FName(TEXT("DissolveGlow"))
