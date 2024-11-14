@@ -73,81 +73,81 @@ ABaseCharacter::ABaseCharacter()
 	DissolveTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("DissolveTimelineComponent"));
 
 	AttachedGrenade = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Attached Grenade"));
-	AttachedGrenade->SetupAttachment(GetMesh(), FName("GrenadeSocket"));
+	AttachedGrenade->SetupAttachment(GetMesh(), SOCKET_GRENADE);
 	AttachedGrenade->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	//Hit boxes for server-side rewind
-	head = CreateDefaultSubobject<UBoxComponent>(TEXT("head"));
-	head->SetupAttachment(GetMesh(), FName("head"));
-	HitCollisionBoxes.Add(FName("head"), head);
+	head = CreateDefaultSubobject<UBoxComponent>(BONE_HEAD);
+	head->SetupAttachment(GetMesh(), BONE_HEAD);
+	HitCollisionBoxes.Add(BONE_HEAD, head);
 
-	pelvis = CreateDefaultSubobject<UBoxComponent>(TEXT("pelvis"));
-	pelvis->SetupAttachment(GetMesh(), FName("pelvis"));
-	HitCollisionBoxes.Add(FName("pelvis"), pelvis);
+	pelvis = CreateDefaultSubobject<UBoxComponent>(BONE_PELVIS);
+	pelvis->SetupAttachment(GetMesh(), BONE_PELVIS);
+	HitCollisionBoxes.Add(BONE_PELVIS, pelvis);
 
-	spine_02 = CreateDefaultSubobject<UBoxComponent>(TEXT("spine_02"));
-	spine_02->SetupAttachment(GetMesh(), FName("spine_02"));
-	HitCollisionBoxes.Add(FName("spine_02"), spine_02);
+	spine_02 = CreateDefaultSubobject<UBoxComponent>(BONE_PELVIS2);
+	spine_02->SetupAttachment(GetMesh(), BONE_PELVIS2);
+	HitCollisionBoxes.Add(BONE_PELVIS2, spine_02);
 
-	spine_03 = CreateDefaultSubobject<UBoxComponent>(TEXT("spine_03"));
-	spine_03->SetupAttachment(GetMesh(), FName("spine_03"));
-	HitCollisionBoxes.Add(FName("spine_03"), spine_03);
+	spine_03 = CreateDefaultSubobject<UBoxComponent>(BONE_PELVIS3);
+	spine_03->SetupAttachment(GetMesh(), BONE_PELVIS3);
+	HitCollisionBoxes.Add(BONE_PELVIS3, spine_03);
 
-	upperarm_l = CreateDefaultSubobject<UBoxComponent>(TEXT("upperarm_l"));
-	upperarm_l->SetupAttachment(GetMesh(), FName("upperarm_l"));
-	HitCollisionBoxes.Add(FName("upperarm_l"), upperarm_l);
+	upperarm_l = CreateDefaultSubobject<UBoxComponent>(BONE_LEFTUPPERARM);
+	upperarm_l->SetupAttachment(GetMesh(), BONE_LEFTUPPERARM);
+	HitCollisionBoxes.Add(BONE_LEFTUPPERARM, upperarm_l);
 
-	upperarm_r = CreateDefaultSubobject<UBoxComponent>(TEXT("upperarm_r"));
-	upperarm_r->SetupAttachment(GetMesh(), FName("upperarm_r"));
-	HitCollisionBoxes.Add(FName("upperarm_r"), upperarm_r);
+	upperarm_r = CreateDefaultSubobject<UBoxComponent>(BONE_RIGHTUPPERARM);
+	upperarm_r->SetupAttachment(GetMesh(), BONE_RIGHTUPPERARM);
+	HitCollisionBoxes.Add(BONE_RIGHTUPPERARM, upperarm_r);
 
-	lowerarm_l = CreateDefaultSubobject<UBoxComponent>(TEXT("lowerarm_l"));
-	lowerarm_l->SetupAttachment(GetMesh(), FName("lowerarm_l"));
-	HitCollisionBoxes.Add(FName("lowerarm_l"), lowerarm_l);
+	lowerarm_l = CreateDefaultSubobject<UBoxComponent>(BONE_LEFTLOWERARM);
+	lowerarm_l->SetupAttachment(GetMesh(), BONE_LEFTLOWERARM);
+	HitCollisionBoxes.Add(BONE_LEFTLOWERARM, lowerarm_l);
 
-	lowerarm_r = CreateDefaultSubobject<UBoxComponent>(TEXT("lowerarm_r"));
-	lowerarm_r->SetupAttachment(GetMesh(), FName("lowerarm_r"));
-	HitCollisionBoxes.Add(FName("lowerarm_r"), lowerarm_r);
+	lowerarm_r = CreateDefaultSubobject<UBoxComponent>(BONE_RIGHTLOWERARM);
+	lowerarm_r->SetupAttachment(GetMesh(), BONE_RIGHTLOWERARM);
+	HitCollisionBoxes.Add(BONE_RIGHTLOWERARM, lowerarm_r);
 
-	hand_l = CreateDefaultSubobject<UBoxComponent>(TEXT("hand_l"));
-	hand_l->SetupAttachment(GetMesh(), FName("hand_l"));
-	HitCollisionBoxes.Add(FName("hand_l"), hand_l);
+	hand_l = CreateDefaultSubobject<UBoxComponent>(BONE_LEFTHAND);
+	hand_l->SetupAttachment(GetMesh(), BONE_LEFTHAND);
+	HitCollisionBoxes.Add(BONE_LEFTHAND, hand_l);
 
-	hand_r = CreateDefaultSubobject<UBoxComponent>(TEXT("hand_r"));
-	hand_r->SetupAttachment(GetMesh(), FName("hand_r"));
-	HitCollisionBoxes.Add(FName("hand_r"), hand_r);
+	hand_r = CreateDefaultSubobject<UBoxComponent>(BONE_RIGHTHAND);
+	hand_r->SetupAttachment(GetMesh(), BONE_RIGHTHAND);
+	HitCollisionBoxes.Add(BONE_RIGHTHAND, hand_r);
 
-	blanket = CreateDefaultSubobject<UBoxComponent>(TEXT("blanket"));
-	blanket->SetupAttachment(GetMesh(), FName("backpack"));
-	HitCollisionBoxes.Add(FName("blanket"), blanket);
+	blanket = CreateDefaultSubobject<UBoxComponent>(BONE_BLANKET);
+	blanket->SetupAttachment(GetMesh(), BONE_BLANKET);
+	HitCollisionBoxes.Add(BONE_BLANKET, blanket);
 
-	backpack = CreateDefaultSubobject<UBoxComponent>(TEXT("backpack"));
-	backpack->SetupAttachment(GetMesh(), FName("backpack"));
-	HitCollisionBoxes.Add(FName("backpack"), backpack);
+	backpack = CreateDefaultSubobject<UBoxComponent>(BONE_BACKPACK);
+	backpack->SetupAttachment(GetMesh(), BONE_BACKPACK);
+	HitCollisionBoxes.Add(BONE_BACKPACK, backpack);
 
-	thigh_l = CreateDefaultSubobject<UBoxComponent>(TEXT("thigh_l"));
-	thigh_l->SetupAttachment(GetMesh(), FName("thigh_l"));
-	HitCollisionBoxes.Add(FName("thigh_l"), thigh_l);
+	thigh_l = CreateDefaultSubobject<UBoxComponent>(BONE_LEFTTHIGH);
+	thigh_l->SetupAttachment(GetMesh(), BONE_LEFTTHIGH);
+	HitCollisionBoxes.Add(BONE_LEFTTHIGH, thigh_l);
 
-	thigh_r = CreateDefaultSubobject<UBoxComponent>(TEXT("thigh_r"));
-	thigh_r->SetupAttachment(GetMesh(), FName("thigh_r"));
-	HitCollisionBoxes.Add(FName("thigh_r"), thigh_r);
+	thigh_r = CreateDefaultSubobject<UBoxComponent>(BONE_RIGHTTHIGH);
+	thigh_r->SetupAttachment(GetMesh(), BONE_RIGHTTHIGH);
+	HitCollisionBoxes.Add(BONE_RIGHTTHIGH, thigh_r);
 
-	calf_l = CreateDefaultSubobject<UBoxComponent>(TEXT("calf_l"));
-	calf_l->SetupAttachment(GetMesh(), FName("calf_l"));
-	HitCollisionBoxes.Add(FName("calf_l"), calf_l);
+	calf_l = CreateDefaultSubobject<UBoxComponent>(BONE_LEFTCALF);
+	calf_l->SetupAttachment(GetMesh(), BONE_LEFTCALF);
+	HitCollisionBoxes.Add(BONE_LEFTCALF, calf_l);
 
-	calf_r = CreateDefaultSubobject<UBoxComponent>(TEXT("calf_r"));
-	calf_r->SetupAttachment(GetMesh(), FName("calf_r"));
-	HitCollisionBoxes.Add(FName("calf_r"), calf_r);
+	calf_r = CreateDefaultSubobject<UBoxComponent>(BONE_RIGHTCALF);
+	calf_r->SetupAttachment(GetMesh(), BONE_RIGHTCALF);
+	HitCollisionBoxes.Add(BONE_RIGHTCALF, calf_r);
 
-	foot_l = CreateDefaultSubobject<UBoxComponent>(TEXT("foot_l"));
-	foot_l->SetupAttachment(GetMesh(), FName("foot_l"));
-	HitCollisionBoxes.Add(FName("foot_l"), foot_l);
+	foot_l = CreateDefaultSubobject<UBoxComponent>(BONE_LEFTFOOT);
+	foot_l->SetupAttachment(GetMesh(), BONE_LEFTFOOT);
+	HitCollisionBoxes.Add(BONE_LEFTFOOT, foot_l);
 
-	foot_r = CreateDefaultSubobject<UBoxComponent>(TEXT("foot_r"));
-	foot_r->SetupAttachment(GetMesh(), FName("foot_r"));
-	HitCollisionBoxes.Add(FName("foot_r"), foot_r);
+	foot_r = CreateDefaultSubobject<UBoxComponent>(BONE_RIGHTFOOT);
+	foot_r->SetupAttachment(GetMesh(), BONE_RIGHTFOOT);
+	HitCollisionBoxes.Add(BONE_RIGHTFOOT, foot_r);
 
 	for (auto& box : HitCollisionBoxes)
 	{
@@ -586,6 +586,10 @@ void ABaseCharacter::PlayHitReactMontage()
 
 void ABaseCharacter::GrenadeButtonPressed()
 {
+	if (Combat)
+	{
+		Combat->ThrowGrenade();
+	}
 }
 
 void ABaseCharacter::DropOrDestroyWeapon(AWeapon* Weapon)
@@ -612,6 +616,10 @@ void ABaseCharacter::OnPlayerStateInitialized()
 
 void ABaseCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatorController, AActor* DamageCauser)
 {
+	if(bElimmed)
+	{
+		return;
+	}
 	Health = FMath::Clamp(Health- Damage,0.f,MaxHealth);
 	UpdateHUDHealth();
 	PlayHitReactMontage();
@@ -723,6 +731,11 @@ void ABaseCharacter::PlayElimMontage()
 
 void ABaseCharacter::PlayThrowGrenadeMontage()
 {
+	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
+	if (animInstance && ThrowGrenadeMontage)
+	{
+		animInstance->Montage_Play(ThrowGrenadeMontage);
+	}
 }
 
 void ABaseCharacter::PlaySwapMontage()
@@ -795,7 +808,7 @@ void ABaseCharacter::UpdateHUDAmmo()
 		if(GetEquippedWeapon())
 		{
 			BasePlayerController->SetHUDCarriedAmmo(Combat->CarriedAmmo);
-			BasePlayerController->SetHUDWeaponAmmo(GetEquippedWeapon()->GetAmmo());
+			BasePlayerController->SetHUDWeaponAmmo(GetEquippedWeapon()->GetAmmo(), GetEquippedWeapon()->GetWeaponType());
 		}
 		else
 		{

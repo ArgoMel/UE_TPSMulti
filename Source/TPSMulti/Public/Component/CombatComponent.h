@@ -92,7 +92,7 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_CombatState)
 	ECombatState CombatState = ECombatState::ECS_Unoccupied;
 
-	UPROPERTY(ReplicatedUsing = OnRep_Grenades)
+	UPROPERTY(EditDefaultsOnly,ReplicatedUsing = OnRep_Grenades)
 	int32 Grenades = 4;
 
 	UPROPERTY(EditAnywhere)

@@ -296,6 +296,7 @@ protected:
 	UFUNCTION(BlueprintCallable, Category = "Input")
 	void FireButton(bool bPressed);
 	void PlayHitReactMontage();
+	UFUNCTION(BlueprintCallable, Category = "Input")
 	void GrenadeButtonPressed();
 	void DropOrDestroyWeapon(AWeapon* Weapon);
 	void DropOrDestroyWeapons();

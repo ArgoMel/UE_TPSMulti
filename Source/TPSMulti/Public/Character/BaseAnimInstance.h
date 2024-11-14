@@ -92,4 +92,10 @@ protected:
 
 	UFUNCTION()
 	void AnimNotify_Shell();
+
+	UFUNCTION()
+	void AnimNotify_FinishGrenadeThrow();
+
+	UFUNCTION()
+	void AnimNotify_GrenadeLaunch();
 };

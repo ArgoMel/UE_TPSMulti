@@ -134,9 +134,38 @@ void ABasePlayerController::PollInit()
 			CharacterOverlay = BaseHUD->CharacterOverlay;
 			if(CharacterOverlay)
 			{
-				SetHUDHealth(HUDHealth,HUDMaxHealth);
-				SetHUDScore(HUDScore);
-				SetHUDDefeats(HUDDefeats);
+				if (bInitializeHealth)
+				{
+					SetHUDHealth(HUDHealth, HUDMaxHealth);
+				}
+				if (bInitializeShield)
+				{
+					SetHUDShield(HUDShield, HUDMaxShield);
+				}
+				if (bInitializeScore)
+				{
+					SetHUDScore(HUDScore);
+				}
+				if (bInitializeDefeats)
+				{
+					SetHUDDefeats(HUDDefeats);
+				}
+				if (bInitializeCarriedAmmo)
+				{
+					SetHUDCarriedAmmo(HUDCarriedAmmo);
+				}
+				if (bInitializeWeaponAmmo)
+				{
+					SetHUDWeaponAmmo(HUDWeaponAmmo);
+				}
+
+				ABaseCharacter* baseCharacter = Cast<ABaseCharacter>(GetPawn());
+				if (baseCharacter && 
+					baseCharacter->GetCombat())//&&
+					//bInitializeGrenades)
+				{
+					SetHUDGrenades(baseCharacter->GetCombat()->GetGrenades());
+				}
 			}
 		}
 	}
@@ -363,6 +392,21 @@ void ABasePlayerController::SetHUDAnnouncementCountdown(float CountdownTime)
 
 void ABasePlayerController::SetHUDGrenades(int32 Grenades)
 {
+	if (GetBaseHUD() &&
+		BaseHUD->CharacterOverlay &&
+		BaseHUD->CharacterOverlay->GrenadesText)
+	{
+		FString grenadesText = FString::Printf(TEXT("%d"), Grenades);
+		if (Grenades == INF_AMMO)
+		{
+			grenadesText = TEXT("INF");
+		}
+		BaseHUD->CharacterOverlay->GrenadesText->SetText(FText::FromString(grenadesText));
+	}
+	else
+	{
+		bInitializeGrenades = true;
+	}
 }
 
 void ABasePlayerController::HideTeamScores()

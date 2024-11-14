@@ -8,13 +8,31 @@ constexpr float TraceLength = 80000.f;
 
 #define ECC_SkeletalMesh ECollisionChannel::ECC_GameTraceChannel1
 
+#define SOCKET_PISTOL FName(TEXT("PistolSocket"))
 #define SOCKET_LEFTHAND FName(TEXT("LeftHandSocket"))
 #define SOCKET_RIGHTHAND FName(TEXT("RightHandSocket"))
+#define SOCKET_GRENADE FName(TEXT("GrenadeSocket"))
 #define SOCKET_MUZZLEFLASH FName(TEXT("MuzzleFlash"))
 #define SOCKET_AMMOEJECT FName(TEXT("AmmoEject"))
 
-#define BONE_RIGHTHAND FName(TEXT("hand_r"))
 #define BONE_HEAD FName(TEXT("head"))
+#define BONE_PELVIS FName(TEXT("pelvis"))
+#define BONE_PELVIS2 FName(TEXT("spine_02"))
+#define BONE_PELVIS3 FName(TEXT("spine_03"))
+#define BONE_LEFTUPPERARM FName(TEXT("upperarm_l"))
+#define BONE_RIGHTUPPERARM FName(TEXT("upperarm_r"))
+#define BONE_LEFTLOWERARM FName(TEXT("lowerarm_l"))
+#define BONE_RIGHTLOWERARM FName(TEXT("lowerarm_r"))
+#define BONE_LEFTHAND FName(TEXT("hand_l"))
+#define BONE_RIGHTHAND FName(TEXT("hand_r"))
+#define BONE_BLANKET FName(TEXT("blanket"))
+#define BONE_BACKPACK FName(TEXT("backpack"))
+#define BONE_LEFTTHIGH FName(TEXT("thigh_l"))
+#define BONE_RIGHTTHIGH FName(TEXT("thigh_r"))
+#define BONE_LEFTCALF FName(TEXT("calf_l"))
+#define BONE_RIGHTCALF FName(TEXT("calf_r"))
+#define BONE_LEFTFOOT FName(TEXT("foot_l"))
+#define BONE_RIGHTFOOT FName(TEXT("foot_r"))
 
 #define SECTION_RIFLEAIM FName(TEXT("RifleAim"))
 #define SECTION_RIFLEHIP FName(TEXT("RifleHip"))

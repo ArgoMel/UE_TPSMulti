@@ -107,3 +107,21 @@ void UBaseAnimInstance::AnimNotify_Shell()
 		BaseCharacter->GetCombat()->ShotgunShellReload();
 	}
 }
+
+void UBaseAnimInstance::AnimNotify_FinishGrenadeThrow()
+{
+	if (IsValid(BaseCharacter) &&
+		IsValid(BaseCharacter->GetCombat()))
+	{
+		BaseCharacter->GetCombat()->ThrowGrenadeFinished();
+	}
+}
+
+void UBaseAnimInstance::AnimNotify_GrenadeLaunch()
+{
+	if (IsValid(BaseCharacter) &&
+		IsValid(BaseCharacter->GetCombat()))
+	{
+		BaseCharacter->GetCombat()->LaunchGrenade();
+	}
+}
