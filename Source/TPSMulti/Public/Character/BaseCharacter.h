@@ -12,6 +12,7 @@ class UCameraComponent;
 class UWidgetComponent;
 class AWeapon;
 class UCombatComponent;
+class UBuffComponent;
 class UAnimMontage;
 class USoundCue;
 class UNiagaraSystem;
@@ -57,9 +58,9 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UCombatComponent* Combat;
 	
-	//UPROPERTY(VisibleAnywhere)
-	//class UBuffComponent* Buff;
-	//
+	UPROPERTY(VisibleAnywhere)
+	UBuffComponent* Buff;
+	
 	//UPROPERTY(VisibleAnywhere)
 	//class ULagCompensationComponent* LagCompensation;
 
@@ -367,7 +368,7 @@ public:
 	FORCEINLINE bool GetDisableGameplay() const { return bDisableGameplay; }
 	FORCEINLINE UAnimMontage* GetReloadMontage() const { return ReloadMontage; }
 	FORCEINLINE UStaticMeshComponent* GetAttachedGrenade() const { return AttachedGrenade; }
-	//FORCEINLINE UBuffComponent* GetBuff() const { return Buff; }
+	FORCEINLINE UBuffComponent* GetBuff() const { return Buff; }
 	bool IsLocallyReloading();
 	//FORCEINLINE ULagCompensationComponent* GetLagCompensation() const { return LagCompensation; }
 	FORCEINLINE bool IsHoldingTheFlag() const;

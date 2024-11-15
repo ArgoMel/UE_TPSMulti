@@ -3,12 +3,11 @@
 #include "Character/BaseCharacter.h"
 #include "Weapon/Weapon.h"
 #include "Component/CombatComponent.h"
-//#include "Blaster/BlasterComponents/BuffComponent.h"
+#include "Component/BuffComponent.h"
 #include "Character/BaseAnimInstance.h"
 #include "PlayerController/BasePlayerController.h"
 #include "GameMode/BaseGameMode.h"
 #include "PlayerState/BasePlayerState.h"
-//#include "Blaster/Weapon/WeaponTypes.h"
 //#include "Blaster/BlasterComponents/LagCompensationComponent.h"
 //#include "Blaster/GameState/BlasterGameState.h"
 //#include "Blaster/PlayerStart/TeamPlayerStart.h"
@@ -65,8 +64,8 @@ ABaseCharacter::ABaseCharacter()
 	Combat = CreateDefaultSubobject<UCombatComponent>(TEXT("Combat"));
 	Combat->SetIsReplicated(true);
 	
-	//Buff = CreateDefaultSubobject<UBuffComponent>(TEXT("BuffComponent"));
-	//Buff->SetIsReplicated(true);
+	Buff = CreateDefaultSubobject<UBuffComponent>(TEXT("BuffComponent"));
+	Buff->SetIsReplicated(true);
 
 	//LagCompensation = CreateDefaultSubobject<ULagCompensationComponent>(TEXT("LagCompensation"));
 
@@ -177,15 +176,12 @@ void ABaseCharacter::PostInitializeComponents()
 	{
 		Combat->Character = this;
 	}
-	//if (Buff)
-	//{
-	//	Buff->Character = this;
-	//	Buff->SetInitialSpeeds(
-	//		GetCharacterMovement()->MaxWalkSpeed,
-	//		GetCharacterMovement()->MaxWalkSpeedCrouched
-	//	);
-	//	Buff->SetInitialJumpVelocity(GetCharacterMovement()->JumpZVelocity);
-	//}
+	if (Buff)
+	{
+		Buff->Character = this;
+		Buff->SetInitialSpeeds(GetCharacterMovement()->MaxWalkSpeed,GetCharacterMovement()->MaxWalkSpeedCrouched);
+		Buff->SetInitialJumpVelocity(GetCharacterMovement()->JumpZVelocity);
+	}
 	//if (LagCompensation)
 	//{
 	//	LagCompensation->Character = this;
