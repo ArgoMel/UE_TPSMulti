@@ -480,7 +480,7 @@ void UCombatComponent::MulticastShotgunFire_Implementation(const TArray<FVector_
 
 void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 {
-	FVector2D viewportSize;
+	FVector2D viewportSize=FVector2D::ZeroVector;
 	if(GEngine&&
 		GEngine->GameViewport)
 	{
