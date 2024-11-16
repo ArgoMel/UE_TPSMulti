@@ -364,13 +364,14 @@ bool VRMConverter::ConvertMorphTarget(UVrmAssetListObject *vrmAssetList) {
 	FSkeletalMeshImportData RawMesh;
 	PRAGMA_DISABLE_DEPRECATION_WARNINGS
 	sk->LoadLODImportedData(0, RawMesh);
-	PRAGMA_ENABLE_DEPRECATION_WARNINGS
+	//sk->GetMeshDescription(0);
+
 	RawMesh.MorphTargetNames = MorphNameList;
 
 	// to avoid no morph target
 	// on EditorRestart
-	PRAGMA_DISABLE_DEPRECATION_WARNINGS
 	sk->SaveLODImportedData(0, RawMesh);
+	//sk->CommitMeshDescription(0);
 
 	sk->SetLODImportedDataVersions(0, ESkeletalMeshGeoImportVersions::Before_Versionning, ESkeletalMeshSkinningImportVersions::Before_Versionning);
 	PRAGMA_ENABLE_DEPRECATION_WARNINGS

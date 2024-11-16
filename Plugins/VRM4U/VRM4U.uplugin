@@ -69,6 +69,10 @@
 			"Enabled": true
 		},
 		{
+			"Name": "MovieRenderPipeline",
+			"Enabled": true
+		},
+		{
 			"Name": "IKRig",
 			"Enabled": true
 		},

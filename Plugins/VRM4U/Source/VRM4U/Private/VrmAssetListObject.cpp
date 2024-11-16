@@ -74,7 +74,6 @@ void UVrmAssetListObject::GetAssetRegistryTags(FAssetRegistryTagsContext Context
 	if (AssetImportData)
 	{
 		Context.AddTag(FAssetRegistryTag(SourceFileTagName(), AssetImportData->GetSourceData().ToJson(), FAssetRegistryTag::TT_Hidden));
-
 		Context.AddTag(FAssetRegistryTag("VRM4U", SourceFileTagName().ToString(), FAssetRegistryTag::TT_Hidden));
 	}
 	Super::GetAssetRegistryTags(Context);

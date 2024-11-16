@@ -57,6 +57,23 @@
 #include "Kismet/KismetRenderingLibrary.h"
 #endif
 
+#if	UE_VERSION_OLDER_THAN(5,1,0)
+#else
+#if WITH_EDITOR
+#define VRM4U_USE_MRQ 1
+#endif
+#endif
+
+#ifndef VRM4U_USE_MRQ
+#define VRM4U_USE_MRQ 0
+#endif
+
+
+#if VRM4U_USE_MRQ
+#include "MoviePipelineQueueSubsystem.h"
+#endif
+
+
 #include "Animation/AnimInstance.h"
 #include "VrmAnimInstanceCopy.h"
 #include "VrmUtil.h"
@@ -1755,9 +1772,7 @@ bool UVrmBPFunctionLibrary::VRMBakeAnim(const USkeletalMeshComponent* skc, const
 #else
 		ase->GetController().SetNumberOfFrames(ase->GetController().ConvertSecondsToFrameNumber(totalTime));
 		//ase->MarkRawDataAsModified();
-		PRAGMA_DISABLE_DEPRECATION_WARNINGS
 		ase->SetUseRawDataOnly(true);
-		PRAGMA_ENABLE_DEPRECATION_WARNINGS
 		ase->FlagDependentAnimationsAsRawDataOnly();
 		ase->UpdateDependentStreamingAnimations();
 #endif
@@ -1881,4 +1896,19 @@ void UVrmBPFunctionLibrary::VRMGetTopLevelAssetName(const FAssetData& target, FN
 UVrmAssetListObject* UVrmBPFunctionLibrary::VRMGetVrmAssetListObjectFromAsset(const UObject* Asset) {
 	return VRMUtil::GetAssetListObject(Asset);
 }
+
+
+bool UVrmBPFunctionLibrary::VRMIsMovieRendering() {
+#if VRM4U_USE_MRQ
+	UMoviePipelineQueueSubsystem* s = GEditor->GetEditorSubsystem<UMoviePipelineQueueSubsystem>();
+	if (s == nullptr) return false;
+
+	return s->IsRendering();
+#else
+	return false;
+#endif
+
+}
+
+
 

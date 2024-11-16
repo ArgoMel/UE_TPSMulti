@@ -253,7 +253,7 @@ public:
 #if WITH_EDITOR
 
 
-	virtual void GetAssetRegistryTags(FAssetRegistryTagsContext Context) const override;
+	virtual void GetAssetRegistryTags(FAssetRegistryTagsContext Context) const;
 	// Import data for this 
 	void WaitUntilAsyncPropertyReleased() const;
 

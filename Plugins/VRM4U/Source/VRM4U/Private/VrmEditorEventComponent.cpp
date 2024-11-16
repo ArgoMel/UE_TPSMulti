@@ -115,10 +115,8 @@ void UVrmEditorEventComponent::OnGlobalTimeChangeFunc() {
 #if WITH_EDITOR
 #if	UE_VERSION_OLDER_THAN(4,26,0)
 #else
-	PRAGMA_DISABLE_DEPRECATION_WARNINGS
 	int32  t = ULevelSequenceEditorBlueprintLibrary::GetCurrentTime();
-	OnGlobalTimeChange.Broadcast((int32)t);
-	PRAGMA_ENABLE_DEPRECATION_WARNINGS
+	OnGlobalTimeChange.Broadcast((float)t);
 #endif
 #endif
 }
