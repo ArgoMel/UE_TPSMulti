@@ -341,7 +341,10 @@ float ABaseCharacter::CalculateSpeed()
 void ABaseCharacter::OnRep_Health(float LastHealth)
 {
 	UpdateHUDHealth();
-	PlayHitReactMontage();
+	if (Health<LastHealth)
+	{
+		PlayHitReactMontage();
+	}
 }
 
 void ABaseCharacter::OnRep_Shield(float LastShield)
