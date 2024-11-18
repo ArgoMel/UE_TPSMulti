@@ -8,6 +8,7 @@
 #include "PlayerState/BasePlayerState.h"
 #include "HUD/AnnouncementWidget.h"
 #include "Component/CombatComponent.h"
+#include "Weapon/Weapon.h"
 #include "GameState/BaseGameState.h"
 //#include "HUD/ReturnToMainMenu.h"
 #include "Components/ProgressBar.h"
@@ -134,37 +135,47 @@ void ABasePlayerController::PollInit()
 			CharacterOverlay = BaseHUD->CharacterOverlay;
 			if(CharacterOverlay)
 			{
-				if (bInitializeHealth)
+				ABasePlayerState* basePlayerState = GetPlayerState<ABasePlayerState>();
+				if(basePlayerState)
 				{
-					SetHUDHealth(HUDHealth, HUDMaxHealth);
-				}
-				if (bInitializeShield)
-				{
-					SetHUDShield(HUDShield, HUDMaxShield);
-				}
-				if (bInitializeScore)
-				{
-					SetHUDScore(HUDScore);
-				}
-				if (bInitializeDefeats)
-				{
-					SetHUDDefeats(HUDDefeats);
-				}
-				if (bInitializeCarriedAmmo)
-				{
-					SetHUDCarriedAmmo(HUDCarriedAmmo);
-				}
-				if (bInitializeWeaponAmmo)
-				{
-					SetHUDWeaponAmmo(HUDWeaponAmmo);
+					if (bInitializeScore)
+					{
+						SetHUDScore(basePlayerState->GetScore());
+					}
+					if (bInitializeDefeats)
+					{
+						SetHUDDefeats(basePlayerState->GetDefeat());
+					}
 				}
 
 				ABaseCharacter* baseCharacter = Cast<ABaseCharacter>(GetPawn());
-				if (baseCharacter && 
-					baseCharacter->GetCombat())//&&
-					//bInitializeGrenades)
+				if (baseCharacter)
 				{
-					SetHUDGrenades(baseCharacter->GetCombat()->GetGrenades());
+					if (bInitializeHealth)
+					{
+						SetHUDHealth(baseCharacter->GetHealth(), baseCharacter->GetMaxHealth());
+					}
+					if (bInitializeShield)
+					{
+						SetHUDShield(baseCharacter->GetShield(), baseCharacter->GetMaxShield());
+					}
+
+					if (baseCharacter->GetCombat())
+					{
+						if (bInitializeWeaponAmmo &&
+							baseCharacter->GetCombat()->GetEquippedWeapon())
+						{
+							SetHUDWeaponAmmo(baseCharacter->GetCombat()->GetEquippedWeapon()->GetAmmo(), baseCharacter->GetCombat()->GetEquippedWeapon()->GetWeaponType());
+						}
+						if (bInitializeCarriedAmmo)
+						{
+							SetHUDCarriedAmmo(baseCharacter->GetCombat()->GetCarriedAmmo());
+						}
+						if (bInitializeGrenades)
+						{
+							SetHUDGrenades(baseCharacter->GetCombat()->GetGrenades());
+						}
+					}
 				}
 			}
 		}
@@ -260,12 +271,10 @@ FString ABasePlayerController::GetTeamsInfoText(ABlasterGameState* BlasterGameSt
 
 void ABasePlayerController::SetHUDHealth(float Health, float MaxHealth)
 {
-
-	bool bHUDValid = GetBaseHUD() &&
+	if(GetBaseHUD() &&
 		BaseHUD->CharacterOverlay &&
 		BaseHUD->CharacterOverlay->HealthBar &&
-		BaseHUD->CharacterOverlay->HealthText;
-	if(bHUDValid)
+		BaseHUD->CharacterOverlay->HealthText)
 	{
 		const float healthPercent = Health / MaxHealth;
 		BaseHUD->CharacterOverlay->HealthBar->SetPercent(healthPercent);
@@ -275,13 +284,25 @@ void ABasePlayerController::SetHUDHealth(float Health, float MaxHealth)
 	else
 	{
 		bInitializeHealth = true;
-		HUDHealth = Health;
-		HUDMaxHealth = MaxHealth;
 	}
 }
 
 void ABasePlayerController::SetHUDShield(float Shield, float MaxShield)
 {
+	if (GetBaseHUD() &&
+		BaseHUD->CharacterOverlay &&
+		BaseHUD->CharacterOverlay->ShieldBar &&
+		BaseHUD->CharacterOverlay->ShieldText)
+	{
+		const float shieldPercent = Shield / MaxShield;
+		BaseHUD->CharacterOverlay->ShieldBar->SetPercent(shieldPercent);
+		FString shieldText = FString::Printf(TEXT("%d/%d"), FMath::CeilToInt(Shield), FMath::CeilToInt(MaxShield));
+		BaseHUD->CharacterOverlay->ShieldText->SetText(FText::FromString(shieldText));
+	}
+	else
+	{
+		bInitializeShield = true;
+	}
 }
 
 void ABasePlayerController::SetHUDScore(float Score)
@@ -297,7 +318,6 @@ void ABasePlayerController::SetHUDScore(float Score)
 	else
 	{
 		bInitializeScore = true;
-		HUDScore = Score;
 	}
 }
 
@@ -314,7 +334,6 @@ void ABasePlayerController::SetHUDDefeats(int32 Defeats)
 	else
 	{
 		bInitializeDefeats = true;
-		HUDDefeats = Defeats;
 	}
 }
 
@@ -329,6 +348,10 @@ void ABasePlayerController::SetHUDWeaponAmmo(int32 Ammo, EWeaponType WeaponType)
 		FString ammoText = FString::Printf(TEXT("%d"), Ammo);
 		BaseHUD->CharacterOverlay->WeaponAmmoAmount->SetText(FText::FromString(ammoText));
 		BaseHUD->CharacterOverlay->WeaponTypeText->SetText(UEnum::GetDisplayValueAsText(WeaponType));
+	}
+	else
+	{
+		bInitializeWeaponAmmo = true;
 	}
 }
 
@@ -345,6 +368,10 @@ void ABasePlayerController::SetHUDCarriedAmmo(int32 Ammo)
 			ammoText = TEXT("INF");
 		}
 		BaseHUD->CharacterOverlay->CarriedAmmoAmount->SetText(FText::FromString(ammoText));
+	}
+	else
+	{
+		bInitializeCarriedAmmo = true;
 	}
 }
 

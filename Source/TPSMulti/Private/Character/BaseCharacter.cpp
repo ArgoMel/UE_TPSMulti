@@ -349,6 +349,11 @@ void ABaseCharacter::OnRep_Health(float LastHealth)
 
 void ABaseCharacter::OnRep_Shield(float LastShield)
 {
+	UpdateHUDShield();
+	if (Shield < LastShield)
+	{
+		PlayHitReactMontage();
+	}
 }
 
 void ABaseCharacter::ElimTimerFinished()
@@ -619,8 +624,18 @@ void ABaseCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const UDa
 	{
 		return;
 	}
-	Health = FMath::Clamp(Health- Damage,0.f,MaxHealth);
+
+	if(Shield>0.f)
+	{
+		Shield = FMath::Clamp(Shield - Damage, 0.f, MaxShield);
+	}
+	else
+	{
+		Health = FMath::Clamp(Health - Damage, 0.f, MaxHealth);
+	}
+
 	UpdateHUDHealth();
+	UpdateHUDShield();
 	PlayHitReactMontage();
 
 	if(Health==0.f)
@@ -798,6 +813,10 @@ void ABaseCharacter::UpdateHUDHealth()
 
 void ABaseCharacter::UpdateHUDShield()
 {
+	if (GetBasePlayerController())
+	{
+		BasePlayerController->SetHUDShield(Shield, MaxShield);
+	}
 }
 
 void ABaseCharacter::UpdateHUDAmmo()

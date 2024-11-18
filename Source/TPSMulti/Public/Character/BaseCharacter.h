@@ -136,22 +136,6 @@ private:
 	// Dynamic instance that we can change at runtime
 	TArray<UMaterialInstanceDynamic*> DynamicDissolveMaterialInstances;
 
-	// Team colors
-	UPROPERTY(EditAnywhere, Category = Elim)
-	UMaterialInstance* RedDissolveMatInst;
-
-	UPROPERTY(EditAnywhere, Category = Elim)
-	UMaterialInstance* RedMaterial;
-
-	UPROPERTY(EditAnywhere, Category = Elim)
-	UMaterialInstance* BlueDissolveMatInst;
-
-	UPROPERTY(EditAnywhere, Category = Elim)
-	UMaterialInstance* BlueMaterial;
-
-	UPROPERTY(EditAnywhere, Category = Elim)
-	UMaterialInstance* OriginalMaterial;
-
 	// Elim effects
 	UPROPERTY(EditAnywhere)
 	UParticleSystem* ElimBotEffect;
