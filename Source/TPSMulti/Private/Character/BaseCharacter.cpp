@@ -279,7 +279,14 @@ void ABaseCharacter::ServerEquipButtonPressed_Implementation()
 {
 	if (Combat)
 	{
-		Combat->EquipWeapon(OverlappingWeapon);
+		if(OverlappingWeapon)
+		{
+			Combat->EquipWeapon(OverlappingWeapon);
+		}
+		else if(Combat->ShouldSwapWeapons())
+		{
+			Combat->SwapWeapons();
+		}
 	}
 }
 
@@ -414,14 +421,7 @@ void ABaseCharacter::EquipButtonPressed()
 	{
 		return;
 	}
-	if (HasAuthority())
-	{
-		Combat->EquipWeapon(OverlappingWeapon);
-	}
-	else
-	{
-		ServerEquipButtonPressed();
-	}
+	ServerEquipButtonPressed();
 }
 
 void ABaseCharacter::CrouchButtonPressed()
@@ -598,16 +598,37 @@ void ABaseCharacter::GrenadeButtonPressed()
 
 void ABaseCharacter::DropOrDestroyWeapon(AWeapon* Weapon)
 {
+	if (!Weapon)
+	{
+		return;
+	}
+	if (Weapon->bDestroyWeapon)
+	{
+		Weapon->Destroy();
+	}
+	else
+	{
+		Weapon->Dropped();
+	}
 }
 
 void ABaseCharacter::DropOrDestroyWeapons()
 {
-	if (Combat &&
-		Combat->EquippedWeapon)
+	if (Combat)
 	{
-		Combat->EquippedWeapon->Dropped();
+		if (Combat->EquippedWeapon)
+		{
+			DropOrDestroyWeapon(Combat->EquippedWeapon);
+		}
+		if (Combat->SecondaryWeapon)
+		{
+			DropOrDestroyWeapon(Combat->SecondaryWeapon);
+		}
+		if (Combat->TheFlag)
+		{
+			Combat->TheFlag->Dropped();
+		}
 	}
-	GetWorld()->GetTimerManager().SetTimer(ElimTimer, this, &ThisClass::ElimTimerFinished, ElimDelay);
 }
 
 void ABaseCharacter::SetSpawnPoint()
@@ -663,7 +684,7 @@ void ABaseCharacter::PollInit()
 	if (!BasePlayerController)
 	{
 		GetBasePlayerController();
-		SpawDefaultWeapon();
+		SpawnDefaultWeapon();
 		UpdateHUDAmmo();
 		UpdateHUDHealth();
 		UpdateHUDShield();
@@ -760,6 +781,7 @@ void ABaseCharacter::Elim(bool bPlayerLeftGame)
 {
 	DropOrDestroyWeapons();
 	MulticastElim(bPlayerLeftGame);
+	GetWorld()->GetTimerManager().SetTimer(ElimTimer, this, &ThisClass::ElimTimerFinished, ElimDelay);
 }
 
 void ABaseCharacter::MulticastElim_Implementation(bool bPlayerLeftGame)
@@ -833,11 +855,26 @@ void ABaseCharacter::UpdateHUDAmmo()
 			BasePlayerController->SetHUDCarriedAmmo(NO_WEAPON);
 			BasePlayerController->SetHUDWeaponAmmo(NO_WEAPON);
 		}
+		BasePlayerController->SetHUDGrenades(Combat->GetGrenades());
 	}
 }
 
-void ABaseCharacter::SpawDefaultWeapon()
+void ABaseCharacter::SpawnDefaultWeapon()
 {
+	ABaseGameMode* baseGameMode = Cast<ABaseGameMode>(UGameplayStatics::GetGameMode(this));
+	UWorld* world = GetWorld();
+	if(baseGameMode&&
+		world&&
+		!bElimmed&&
+		DefaultWeaponClass)
+	{
+		AWeapon* startingWeapon=world->SpawnActor<AWeapon>(DefaultWeaponClass);
+		startingWeapon->bDestroyWeapon = true;
+		if(Combat)
+		{
+			Combat->EquipWeapon(startingWeapon);
+		}
+	}
 }
 
 void ABaseCharacter::ServerLeaveGame_Implementation()
