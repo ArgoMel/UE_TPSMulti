@@ -28,8 +28,7 @@ protected:
 	UPROPERTY(EditAnywhere)
 	TArray<TSubclassOf<class APickup>> PickupClasses;
 
-	UPROPERTY()
-	APickup* SpawnedPickup;
+	TObjectPtr<APickup> SpawnedPickup;
 
 protected:
 	void SpawnPickup();
