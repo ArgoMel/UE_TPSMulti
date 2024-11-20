@@ -23,6 +23,7 @@
 #else
 #include "ILevelSequenceEditorToolkit.h"
 #include "LevelSequenceEditorBlueprintLibrary.h"
+#include "MovieSceneSequencePlayer.h"
 #endif
 
 
@@ -115,7 +116,8 @@ void UVrmEditorEventComponent::OnGlobalTimeChangeFunc() {
 #if WITH_EDITOR
 #if	UE_VERSION_OLDER_THAN(4,26,0)
 #else
-	int32  t = ULevelSequenceEditorBlueprintLibrary::GetCurrentTime();
+	float t=ULevelSequenceEditorBlueprintLibrary::GetGlobalPosition().Time;
+	//int32  t = ULevelSequenceEditorBlueprintLibrary::GetCurrentTime();
 	OnGlobalTimeChange.Broadcast((float)t);
 #endif
 #endif

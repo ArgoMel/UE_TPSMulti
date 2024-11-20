@@ -24,15 +24,15 @@ enum class EWeaponState : uint8
 	EWS_MAX UMETA(DisplayName = "DefaultMAX")
 };
 
-UENUM(BlueprintType)
-enum class EFireType : uint8
-{
-	EFT_HitScan UMETA(DisplayName = "Hit Scan Weapon"),
-	EFT_Projectile UMETA(DisplayName = "Projectile Weapon"),
-	EFT_Shotgun UMETA(DisplayName = "Shotgun Weapon"),
-
-	EFT_MAX UMETA(DisplayName = "DefaultMAX")
-};
+//UENUM(BlueprintType)
+//enum class EFireType : uint8
+//{
+//	EFT_HitScan UMETA(DisplayName = "Hit Scan Weapon"),
+//	EFT_Projectile UMETA(DisplayName = "Projectile Weapon"),
+//	EFT_Shotgun UMETA(DisplayName = "Shotgun Weapon"),
+//
+//	EFT_MAX UMETA(DisplayName = "DefaultMAX")
+//};
 
 UCLASS()
 class TPSMULTI_API AWeapon : public AActor
@@ -142,8 +142,8 @@ public:
 
 	bool bDestroyWeapon = false;
 
-	UPROPERTY(EditAnywhere, Category = "Weapon")
-	EFireType FireType;
+	//UPROPERTY(EditAnywhere, Category = "Weapon")
+	//EFireType FireType;
 
 private:
 	UFUNCTION()
@@ -178,10 +178,10 @@ protected:
 public:
 	void SetHUDAmmo();
 	void ShowPickupWidget(bool bShowWidget);
-	virtual void Fire(const FVector& HitTarget);
+	virtual void Fire(const TArray<FVector_NetQuantize>& HitTargets);
 	virtual void Dropped();
 	void AddAmmo(int32 AmmoToAdd);
-	FVector TraceEndWithScatter(const FVector& HitTarget);
+	void TraceEndWithScatter(const FVector& HitTarget, TArray<FVector_NetQuantize>& HitTargets);
 
 	// Enable or disable custom depth
 	void EnableCustomDepth(bool bEnable);

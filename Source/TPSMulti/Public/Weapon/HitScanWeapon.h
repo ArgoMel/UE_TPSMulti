@@ -11,7 +11,7 @@ class TPSMULTI_API AHitScanWeapon : public AWeapon
 {
 	GENERATED_BODY()
 protected:
-	virtual void Fire(const FVector& HitTarget) override;
+	virtual void Fire(const TArray<FVector_NetQuantize>& HitTargets) override;
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "Weapon|HitScan")

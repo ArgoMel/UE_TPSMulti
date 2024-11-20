@@ -4,9 +4,9 @@
 #include "Weapon/Projectile.h"
 #include "Engine/SkeletalMeshSocket.h"
 
-void AProjectileWeapon::Fire(const FVector& HitTarget)
+void AProjectileWeapon::Fire(const TArray<FVector_NetQuantize>& HitTargets)
 {
-	Super::Fire(HitTarget);
+	Super::Fire(HitTargets);
 	APawn* instigatorPawn = Cast<APawn>(GetOwner());
 	const USkeletalMeshSocket* muzzleFlashSocket = GetWeaponMesh()->GetSocketByName(SOCKET_MUZZLEFLASH);
 	UWorld* world = GetWorld();
@@ -16,7 +16,7 @@ void AProjectileWeapon::Fire(const FVector& HitTarget)
 	{
 		FTransform socketTransform = muzzleFlashSocket->GetSocketTransform(GetWeaponMesh());
 		// From muzzle flash socket to hit location from TraceUnderCrosshairs
-		FVector toTarget = HitTarget - socketTransform.GetLocation();
+		FVector toTarget = HitTargets[0] - socketTransform.GetLocation();
 		FRotator targetRotation = toTarget.Rotation();
 
 		FActorSpawnParameters spawnParams;

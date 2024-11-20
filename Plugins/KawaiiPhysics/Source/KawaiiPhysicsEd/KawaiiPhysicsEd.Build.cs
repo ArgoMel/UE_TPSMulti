@@ -11,8 +11,7 @@ public class KawaiiPhysicsEd : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new[] { "Core", "CoreUObject", "Engine", "InputCore", "KawaiiPhysics" });
 		PrivateDependencyModuleNames.AddRange(new[]
 		{
-			"AnimGraph", "BlueprintGraph", "Persona", "UnrealEd", "AnimGraphRuntime", "Slate", "SlateCore",
-			"StructUtils"
+			"AnimGraph", "BlueprintGraph", "Persona", "UnrealEd", "AnimGraphRuntime", "Slate", "SlateCore"
 		});
 
 		BuildVersion Version;

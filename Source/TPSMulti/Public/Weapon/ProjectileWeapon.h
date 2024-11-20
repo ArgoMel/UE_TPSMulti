@@ -18,5 +18,5 @@ private:
 	TSubclassOf<AProjectile> ServerSideRewindProjectileClass;
 
 public:
-	virtual void Fire(const FVector& HitTarget) override;
+	virtual void Fire(const TArray<FVector_NetQuantize>& HitTargets) override;
 };

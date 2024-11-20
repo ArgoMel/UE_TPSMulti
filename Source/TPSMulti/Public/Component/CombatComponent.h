@@ -153,29 +153,17 @@ protected:
 	void OnRep_SecondaryWeapon();
 
 	void Fire();
-	void FireProjectileWeapon();
-	void FireHitScanWeapon();
-	void FireShotgun();
-	void LocalFire(const FVector_NetQuantize& TraceHitTarget);
-	void ShotgunLocalFire(const TArray<FVector_NetQuantize>& TraceHitTargets);
+	void FireWeapon();
+	void LocalFire(const TArray<FVector_NetQuantize>& TraceHitTargets);
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerFire(const FVector_NetQuantize& TraceHitTarget, float FireDelay);
-	void ServerFire_Implementation(const FVector_NetQuantize& TraceHitTarget, float FireDelay);
-	bool ServerFire_Validate(const FVector_NetQuantize& TraceHitTarget, float FireDelay);
+	void ServerFire(const TArray<FVector_NetQuantize>& TraceHitTargets, float FireDelay);
+	void ServerFire_Implementation(const TArray<FVector_NetQuantize>& TraceHitTargets, float FireDelay);
+	bool ServerFire_Validate(const TArray<FVector_NetQuantize>& TraceHitTargets, float FireDelay);
 
 	UFUNCTION(NetMulticast, Reliable)
-	void MulticastFire(const FVector_NetQuantize& TraceHitTarget);
-	void MulticastFire_Implementation(const FVector_NetQuantize& TraceHitTarget);
-
-	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerShotgunFire(const TArray<FVector_NetQuantize>& TraceHitTargets, float FireDelay);
-	void ServerShotgunFire_Implementation(const TArray<FVector_NetQuantize>& TraceHitTargets, float FireDelay);
-	bool ServerShotgunFire_Validate(const TArray<FVector_NetQuantize>& TraceHitTargets, float FireDelay);
-
-	UFUNCTION(NetMulticast, Reliable)
-	void MulticastShotgunFire(const TArray<FVector_NetQuantize>& TraceHitTargets);
-	void MulticastShotgunFire_Implementation(const TArray<FVector_NetQuantize>& TraceHitTargets);
+	void MulticastFire(const TArray<FVector_NetQuantize>& TraceHitTargets);
+	void MulticastFire_Implementation(const TArray<FVector_NetQuantize>& TraceHitTargets);
 
 	void TraceUnderCrosshairs(FHitResult& TraceHitResult);
 

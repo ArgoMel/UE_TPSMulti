@@ -284,7 +284,7 @@ void AWeapon::ShowPickupWidget(bool bShowWidget)
 	}
 }
 
-void AWeapon::Fire(const FVector& HitTarget)
+void AWeapon::Fire(const TArray<FVector_NetQuantize>& HitTargets)
 {
 	if(FireAnimation)
 	{
@@ -302,7 +302,10 @@ void AWeapon::Fire(const FVector& HitTarget)
 			world->SpawnActor<ACasing>(CasingClass, socketTransform.GetLocation(), socketTransform.GetRotation().Rotator(), spawnParams);
 		}
 	}
-	SpendRound();
+	if(HasAuthority())
+	{
+		SpendRound();
+	}
 }
 
 void AWeapon::Dropped()
@@ -322,24 +325,47 @@ void AWeapon::AddAmmo(int32 AmmoToAdd)
 	ClientAddAmmo(AmmoToAdd);
 }
 
-FVector AWeapon::TraceEndWithScatter(const FVector& HitTarget)
+void AWeapon::TraceEndWithScatter(const FVector& HitTarget, TArray<FVector_NetQuantize>& HitTargets)
 {
 	const USkeletalMeshSocket* muzzleFlashSocket = GetWeaponMesh()->GetSocketByName(SOCKET_MUZZLEFLASH);
 	if (muzzleFlashSocket == nullptr)
 	{
-		return FVector();
+		return;
 	}
-
 	const FTransform socketTransform = muzzleFlashSocket->GetSocketTransform(GetWeaponMesh());
 	const FVector traceStart = socketTransform.GetLocation();
-
 	const FVector toTargetNormalized = (HitTarget - traceStart).GetSafeNormal();
 	const FVector sphereCenter = traceStart + toTargetNormalized * DistanceToSphere;
-	const FVector randVec = UKismetMathLibrary::RandomUnitVector() * FMath::FRandRange(0.f, SphereRadius);
-	const FVector endLoc = sphereCenter + randVec;
-	const FVector toEndLoc = endLoc - traceStart;
 
-	return FVector(traceStart + toEndLoc * TraceLength / toEndLoc.Size());
+	for (int32 i = 0; i < NumberOfPellets; ++i)
+	{
+		const FVector randVec = UKismetMathLibrary::RandomUnitVector() * FMath::FRandRange(0.f, SphereRadius);
+		const FVector endLoc = sphereCenter + randVec;
+		FVector toEndLoc = endLoc - traceStart;
+		toEndLoc = traceStart + toEndLoc * TraceLength / toEndLoc.Size();
+		HitTargets.Add(toEndLoc);
+
+		//DrawDebugSphere(GetWorld(), sphereCenter, SphereRadius, 12, FColor::Red, true);
+		//DrawDebugSphere(GetWorld(), endLoc, 4.f, 12, FColor::Orange, true);
+		//DrawDebugLine(GetWorld(), traceStart, FVector(traceStart + toEndLoc * TraceLength / toEndLoc.Size()), FColor::Cyan, true);
+	}
+
+	//const USkeletalMeshSocket* muzzleFlashSocket = GetWeaponMesh()->GetSocketByName(SOCKET_MUZZLEFLASH);
+	//if (muzzleFlashSocket == nullptr)
+	//{
+	//	return FVector();
+	//}
+
+	//const FTransform socketTransform = muzzleFlashSocket->GetSocketTransform(GetWeaponMesh());
+	//const FVector traceStart = socketTransform.GetLocation();
+
+	//const FVector toTargetNormalized = (HitTarget - traceStart).GetSafeNormal();
+	//const FVector sphereCenter = traceStart + toTargetNormalized * DistanceToSphere;
+	//const FVector randVec = UKismetMathLibrary::RandomUnitVector() * FMath::FRandRange(0.f, SphereRadius);
+	//const FVector endLoc = sphereCenter + randVec;
+	//const FVector toEndLoc = endLoc - traceStart;
+
+	//return FVector(traceStart + toEndLoc * TraceLength / toEndLoc.Size());
 }
 
 void AWeapon::EnableCustomDepth(bool bEnable)
