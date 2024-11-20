@@ -60,11 +60,11 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* GrenadesText;
 
-	//UPROPERTY(meta = (BindWidget))
-	//UImage* HighPingImage;
+	UPROPERTY(meta = (BindWidget))
+	UImage* HighPingImage;
 
-	//UPROPERTY(meta = (BindWidgetAnim), Transient)
-	//UWidgetAnimation* HighPingAnimation;
+	UPROPERTY(meta = (BindWidgetAnim), Transient)
+	UWidgetAnimation* HighPingAnimation;
 
 	UPROPERTY(meta = (BindWidgetAnim), Transient)
 	UWidgetAnimation* BlinkTextAnim;

@@ -48,6 +48,7 @@ void ABasePlayerController::Tick(float DeltaTime)
 	SetHUDTime();
 	CheckTimeSync(DeltaTime);
 	PollInit();
+	CheckPing(DeltaTime);
 }
 
 void ABasePlayerController::SetupInputComponent()
@@ -237,14 +238,62 @@ void ABasePlayerController::ClientJoinMidgame_Implementation(FName StateOfMatch,
 
 void ABasePlayerController::HighPingWarning()
 {
+	if (GetBaseHUD() &&
+		BaseHUD->CharacterOverlay &&
+		BaseHUD->CharacterOverlay->HighPingImage&&
+		BaseHUD->CharacterOverlay->HighPingAnimation)
+	{
+		BaseHUD->CharacterOverlay->HighPingImage->SetOpacity(1.f);
+		BaseHUD->CharacterOverlay->PlayAnimation(BaseHUD->CharacterOverlay->HighPingAnimation,0.f,3,EUMGSequencePlayMode::PingPong);
+	}
 }
 
 void ABasePlayerController::StopHighPingWarning()
 {
+	if (GetBaseHUD() &&
+		BaseHUD->CharacterOverlay &&
+		BaseHUD->CharacterOverlay->HighPingImage &&
+		BaseHUD->CharacterOverlay->HighPingAnimation)
+	{
+		BaseHUD->CharacterOverlay->HighPingImage->SetOpacity(0.f);
+		if(BaseHUD->CharacterOverlay->IsAnimationPlaying(BaseHUD->CharacterOverlay->HighPingAnimation))
+		{
+			BaseHUD->CharacterOverlay->StopAnimation(BaseHUD->CharacterOverlay->HighPingAnimation);
+		}
+	}
 }
 
 void ABasePlayerController::CheckPing(float DeltaTime)
 {
+	HighPingRunningTime += DeltaTime;
+	if (HighPingRunningTime > CheckPingFrequency)
+	{
+		if (!PlayerState)
+		{
+			PlayerState = GetPlayerState<APlayerState>();
+		}
+		if (PlayerState)
+		{
+			if (PlayerState->GetPingInMilliseconds() * 4.f > HighPingThreshold)
+			{
+				HighPingWarning();
+				PingAnimationRunningTime = 0.f;
+			}
+		}
+		HighPingRunningTime = 0.f;
+	}
+
+	if (BaseHUD &&
+		BaseHUD->CharacterOverlay &&
+		BaseHUD->CharacterOverlay->HighPingAnimation &&
+		BaseHUD->CharacterOverlay->IsAnimationPlaying(BaseHUD->CharacterOverlay->HighPingAnimation))
+	{
+		PingAnimationRunningTime += DeltaTime;
+		if (PingAnimationRunningTime > HighPingDuration)
+		{
+			StopHighPingWarning();
+		}
+	}
 }
 
 void ABasePlayerController::ShowReturnToMainMenu()
