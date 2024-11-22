@@ -8,7 +8,7 @@
 #include "PlayerController/BasePlayerController.h"
 #include "GameMode/BaseGameMode.h"
 #include "PlayerState/BasePlayerState.h"
-//#include "Blaster/BlasterComponents/LagCompensationComponent.h"
+#include "Component/LagCompensationComponent.h"
 //#include "Blaster/GameState/BlasterGameState.h"
 //#include "Blaster/PlayerStart/TeamPlayerStart.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -67,7 +67,7 @@ ABaseCharacter::ABaseCharacter()
 	Buff = CreateDefaultSubobject<UBuffComponent>(TEXT("BuffComponent"));
 	Buff->SetIsReplicated(true);
 
-	//LagCompensation = CreateDefaultSubobject<ULagCompensationComponent>(TEXT("LagCompensation"));
+	LagCompensation = CreateDefaultSubobject<ULagCompensationComponent>(TEXT("LagCompensation"));
 
 	DissolveTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("DissolveTimelineComponent"));
 
@@ -115,14 +115,6 @@ ABaseCharacter::ABaseCharacter()
 	hand_r = CreateDefaultSubobject<UBoxComponent>(BONE_RIGHTHAND);
 	hand_r->SetupAttachment(GetMesh(), BONE_RIGHTHAND);
 	HitCollisionBoxes.Add(BONE_RIGHTHAND, hand_r);
-
-	blanket = CreateDefaultSubobject<UBoxComponent>(BONE_BLANKET);
-	blanket->SetupAttachment(GetMesh(), BONE_BLANKET);
-	HitCollisionBoxes.Add(BONE_BLANKET, blanket);
-
-	backpack = CreateDefaultSubobject<UBoxComponent>(BONE_BACKPACK);
-	backpack->SetupAttachment(GetMesh(), BONE_BACKPACK);
-	HitCollisionBoxes.Add(BONE_BACKPACK, backpack);
 
 	thigh_l = CreateDefaultSubobject<UBoxComponent>(BONE_LEFTTHIGH);
 	thigh_l->SetupAttachment(GetMesh(), BONE_LEFTTHIGH);
@@ -182,14 +174,14 @@ void ABaseCharacter::PostInitializeComponents()
 		Buff->SetInitialSpeeds(GetCharacterMovement()->MaxWalkSpeed,GetCharacterMovement()->MaxWalkSpeedCrouched);
 		Buff->SetInitialJumpVelocity(GetCharacterMovement()->JumpZVelocity);
 	}
-	//if (LagCompensation)
-	//{
-	//	LagCompensation->Character = this;
-	//	if (Controller)
-	//	{
-	//		LagCompensation->Controller = Cast<ABasePlayerController>(Controller);
-	//	}
-	//}
+	if (LagCompensation)
+	{
+		LagCompensation->Character = this;
+		if (Controller)
+		{
+			LagCompensation->Controller = Cast<ABasePlayerController>(Controller);
+		}
+	}
 }
 
 void ABaseCharacter::BeginPlay()
@@ -948,7 +940,11 @@ ECombatState ABaseCharacter::GetCombatState() const
 
 bool ABaseCharacter::IsLocallyReloading()
 {
-	return false;
+	if(!Combat)
+	{
+		return false;
+	}
+	return Combat->bLocallyReloading;
 }
 
 bool ABaseCharacter::IsHoldingTheFlag() const

@@ -26,8 +26,6 @@ constexpr float TraceLength = 80000.f;
 #define BONE_RIGHTLOWERARM FName(TEXT("lowerarm_r"))
 #define BONE_LEFTHAND FName(TEXT("hand_l"))
 #define BONE_RIGHTHAND FName(TEXT("hand_r"))
-#define BONE_BLANKET FName(TEXT("blanket"))
-#define BONE_BACKPACK FName(TEXT("backpack"))
 #define BONE_LEFTTHIGH FName(TEXT("thigh_l"))
 #define BONE_RIGHTTHIGH FName(TEXT("thigh_r"))
 #define BONE_LEFTCALF FName(TEXT("calf_l"))

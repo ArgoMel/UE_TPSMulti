@@ -77,10 +77,9 @@ void UBaseAnimInstance::NativeUpdateAnimation(float DeltaTime)
 	}
 
 	bUseFABRIK = BaseCharacter->GetCombatState() == ECombatState::ECS_Unoccupied;
-	bool bFABRIKOverride = BaseCharacter->IsLocallyControlled() &&
+	if (BaseCharacter->IsLocallyControlled() &&
 		BaseCharacter->GetCombatState() != ECombatState::ECS_ThrowingGrenade &&
-		BaseCharacter->bFinishedSwapping;
-	if (bFABRIKOverride)
+		BaseCharacter->bFinishedSwapping)
 	{
 		bUseFABRIK = !BaseCharacter->IsLocallyReloading();
 	}

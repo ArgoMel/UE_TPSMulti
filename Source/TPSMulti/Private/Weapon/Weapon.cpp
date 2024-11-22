@@ -101,8 +101,8 @@ void AWeapon::ClientUpdateAmmo_Implementation(int32 ServerAmmo)
 		return;
 	}
 	Ammo = ServerAmmo;
-	//--Sequence;
-	//Ammo -= Sequence;
+	--Sequence;
+	Ammo -= Sequence;
 	SetHUDAmmo();
 }
 
@@ -302,10 +302,7 @@ void AWeapon::Fire(const TArray<FVector_NetQuantize>& HitTargets)
 			world->SpawnActor<ACasing>(CasingClass, socketTransform.GetLocation(), socketTransform.GetRotation().Rotator(), spawnParams);
 		}
 	}
-	if(HasAuthority())
-	{
-		SpendRound();
-	}
+	SpendRound();
 }
 
 void AWeapon::Dropped()

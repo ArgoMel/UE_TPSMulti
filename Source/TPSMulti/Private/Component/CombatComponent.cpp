@@ -71,6 +71,10 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 
 void UCombatComponent::OnRep_Aiming()
 {
+	if (Character&&Character->IsLocallyControlled())
+	{
+		bAiming=bAimButtonPressed;
+	}
 }
 
 void UCombatComponent::InterpFOV(float DeltaTime)
@@ -290,10 +294,13 @@ void UCombatComponent::SetAiming(bool bIsAiming)
 	{
 		Character->GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
 	}
-	if(Character->IsLocallyControlled()&&
-		EquippedWeapon->GetWeaponType()==EWeaponType::EWT_SniperRifle)
+	if(Character->IsLocallyControlled())
 	{
-		Character->ShowSniperScopeWidget(bIsAiming);
+		if (EquippedWeapon->GetWeaponType() == EWeaponType::EWT_SniperRifle)
+		{
+			Character->ShowSniperScopeWidget(bIsAiming);
+		}
+		bAimButtonPressed = bIsAiming;
 	}
 }
 

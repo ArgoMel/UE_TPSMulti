@@ -13,6 +13,7 @@ class UWidgetComponent;
 class AWeapon;
 class UCombatComponent;
 class UBuffComponent;
+class ULagCompensationComponent;
 class UAnimMontage;
 class USoundCue;
 class UNiagaraSystem;
@@ -61,8 +62,8 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	UBuffComponent* Buff;
 	
-	//UPROPERTY(VisibleAnywhere)
-	//class ULagCompensationComponent* LagCompensation;
+	UPROPERTY(VisibleAnywhere)
+	ULagCompensationComponent* LagCompensation;
 
 	float AO_Yaw;
 	float InterpAO_Yaw;
@@ -197,12 +198,6 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 	UBoxComponent* hand_r;
-
-	UPROPERTY(EditAnywhere)
-	UBoxComponent* backpack;
-
-	UPROPERTY(EditAnywhere)
-	UBoxComponent* blanket;
 
 	UPROPERTY(EditAnywhere)
 	UBoxComponent* thigh_l;
@@ -354,7 +349,7 @@ public:
 	FORCEINLINE UStaticMeshComponent* GetAttachedGrenade() const { return AttachedGrenade; }
 	FORCEINLINE UBuffComponent* GetBuff() const { return Buff; }
 	bool IsLocallyReloading();
-	//FORCEINLINE ULagCompensationComponent* GetLagCompensation() const { return LagCompensation; }
+	FORCEINLINE ULagCompensationComponent* GetLagCompensation() const { return LagCompensation; }
 	FORCEINLINE bool IsHoldingTheFlag() const;
 	ETeam GetTeam();
 	void SetHoldingTheFlag(bool bHolding);
