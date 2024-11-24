@@ -230,7 +230,7 @@ public:
 
 private:
 	UFUNCTION()
-	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
+	void OnRep_OverlappingWeapon(AWeapon* LastWeapon) const;
 
 	UFUNCTION(Server, Reliable)
 	void ServerEquipButtonPressed();
@@ -238,9 +238,9 @@ private:
 
 	void TurnInPlace(float DeltaTime);
 
-	void HideCameraIfCharacterClose();
+	void HideCameraIfCharacterClose() const;
 
-	float CalculateSpeed();
+	float CalculateSpeed() const;
 
 	UFUNCTION()
 	void OnRep_Health(float LastHealth);
@@ -275,11 +275,11 @@ protected:
 
 	UFUNCTION(BlueprintCallable, Category = "Input")
 	void FireButton(bool bPressed);
-	void PlayHitReactMontage();
+	void PlayHitReactMontage() const;
 	UFUNCTION(BlueprintCallable, Category = "Input")
 	void GrenadeButtonPressed();
-	void DropOrDestroyWeapon(AWeapon* Weapon);
-	void DropOrDestroyWeapons();
+	void DropOrDestroyWeapon(AWeapon* Weapon) const;
+	void DropOrDestroyWeapons() const;
 	void SetSpawnPoint();
 	void OnPlayerStateInitialized();
 
@@ -291,10 +291,10 @@ protected:
 
 public:
 	// Play montages
-	void PlayFireMontage(bool bAiming);
-	void PlayReloadMontage();
-	void PlayElimMontage();
-	void PlayThrowGrenadeMontage();
+	void PlayFireMontage(bool bAiming) const;
+	void PlayReloadMontage() const;
+	void PlayElimMontage() const;
+	void PlayThrowGrenadeMontage() const;
 	void PlaySwapMontage();
 
 	void Elim(bool bPlayerLeftGame);
@@ -309,7 +309,7 @@ public:
 	void UpdateHUDShield();
 	void UpdateHUDAmmo();
 
-	void SpawnDefaultWeapon();
+	void SpawnDefaultWeapon() const;
 
 	UFUNCTION(Server, Reliable)
 	void ServerLeaveGame();
@@ -326,11 +326,11 @@ public:
 	void SetTeamColor(ETeam Team);
 
 	void SetOverlappingWeapon(AWeapon* Weapon);
-	bool IsWeaponEquipped();
-	bool IsAiming();
+	bool IsWeaponEquipped() const;
+	bool IsAiming() const;
 	FORCEINLINE float GetAO_Yaw() const { return AO_Yaw; }
 	FORCEINLINE float GetAO_Pitch() const { return AO_Pitch; }
-	AWeapon* GetEquippedWeapon();
+	AWeapon* GetEquippedWeapon() const;
 	FORCEINLINE ETurningInPlace GetTurningInPlace() const { return TurningInPlace; }
 	FVector GetHitTarget() const;
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
@@ -348,7 +348,7 @@ public:
 	FORCEINLINE UAnimMontage* GetReloadMontage() const { return ReloadMontage; }
 	FORCEINLINE UStaticMeshComponent* GetAttachedGrenade() const { return AttachedGrenade; }
 	FORCEINLINE UBuffComponent* GetBuff() const { return Buff; }
-	bool IsLocallyReloading();
+	bool IsLocallyReloading() const;
 	FORCEINLINE ULagCompensationComponent* GetLagCompensation() const { return LagCompensation; }
 	FORCEINLINE bool IsHoldingTheFlag() const;
 	ETeam GetTeam();

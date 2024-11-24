@@ -1,7 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
-#include <TPSMulti/TPSMulti.h>
 #include "Components/ActorComponent.h"
 #include "LagCompensationComponent.generated.h"
 
@@ -21,6 +20,13 @@ struct FBoxInformation
 
 	UPROPERTY()
 	FVector BoxExtent;
+
+	FBoxInformation()
+	: Location()
+	, Rotation()
+	, BoxExtent()
+	{
+	}
 };
 
 USTRUCT(BlueprintType)
@@ -53,6 +59,12 @@ struct FServerSideRewindResult
 
 	UPROPERTY()
 	bool bHeadShot;
+
+	FServerSideRewindResult()
+	: bHitConfirmed(false)
+	, bHeadShot(false)
+	{
+	}
 };
 
 USTRUCT(BlueprintType)
@@ -91,36 +103,36 @@ private:
 
 protected:
 	void SaveFramePackage(FFramePackage& Package);
-	FFramePackage InterpBetweenFrames(const FFramePackage& OlderFrame, const FFramePackage& YoungerFrame, float HitTime);
-	void CacheBoxPositions(ABaseCharacter* HitCharacter, FFramePackage& OutFramePackage);
-	void MoveBoxes(ABaseCharacter* HitCharacter, const FFramePackage& Package);
-	void ResetHitBoxes(ABaseCharacter* HitCharacter, const FFramePackage& Package);
-	void EnableCharacterMeshCollision(ABaseCharacter* HitCharacter, ECollisionEnabled::Type CollisionEnabled);
-	void SaveFramePackage();
-	FFramePackage GetFrameToCheck(ABaseCharacter* HitCharacter, float HitTime);
+	FFramePackage InterpBetweenFrames(const FFramePackage& OlderFrame, const FFramePackage& YoungerFrame, float HitTime) const;
+	void CacheBoxPositions(ABaseCharacter* HitCharacter, FFramePackage& OutFramePackage) const;
+	void MoveBoxes(ABaseCharacter* HitCharacter, const FFramePackage& Package) const;
+	void ResetHitBoxes(ABaseCharacter* HitCharacter, const FFramePackage& Package) const;
+	void EnableCharacterMeshCollision(ABaseCharacter* HitCharacter, ECollisionEnabled::Type CollisionEnabled) const;
+	void SaveFramePackage() const;
+	FFramePackage GetFrameToCheck(ABaseCharacter* HitCharacter, float HitTime) const;
 
 	//Hitscan
-	FServerSideRewindResult ConfirmHit(const FFramePackage& Package, ABaseCharacter* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize& HitLocation);
+	FServerSideRewindResult ConfirmHit(const FFramePackage& Package, ABaseCharacter* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize& HitLocation) const;
 
 	//Projectile
 	FServerSideRewindResult ProjectileConfirmHit(const FFramePackage& Package, ABaseCharacter* HitCharacter,
-		const FVector_NetQuantize& TraceStart, const FVector_NetQuantize100& InitialVelocity, float HitTime);
+		const FVector_NetQuantize& TraceStart, const FVector_NetQuantize100& InitialVelocity, float HitTime) const;
 
 	//Shotgun
-	FShotgunServerSideRewindResult ShotgunConfirmHit(const TArray<FFramePackage>& FramePackages, const FVector_NetQuantize& TraceStart,	const TArray<FVector_NetQuantize>& HitLocations);
+	FShotgunServerSideRewindResult ShotgunConfirmHit(const TArray<FFramePackage>& FramePackages, const FVector_NetQuantize& TraceStart,	const TArray<FVector_NetQuantize>& HitLocations) const;
 
 public:
-	void ShowFramePackage(const FFramePackage& Package, const FColor& Color);
+	void ShowFramePackage(const FFramePackage& Package, const FColor& Color) const;
 
 	//Hitscan
-	FServerSideRewindResult ServerSideRewind(ABaseCharacter* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize& HitLocation, float HitTime);
+	FServerSideRewindResult ServerSideRewind(ABaseCharacter* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize& HitLocation, float HitTime) const;
 
 	//Projectile
 	FServerSideRewindResult ProjectileServerSideRewind(ABaseCharacter* HitCharacter, const FVector_NetQuantize& TraceStart,
-		const FVector_NetQuantize100& InitialVelocity, float HitTime);
+		const FVector_NetQuantize100& InitialVelocity, float HitTime) const;
 
 	//Shotgun
-	FShotgunServerSideRewindResult ShotgunServerSideRewind(const TArray<ABaseCharacter*>& HitCharacters, const FVector_NetQuantize& TraceStart, const TArray<FVector_NetQuantize>& HitLocations, float HitTime);
+	FShotgunServerSideRewindResult ShotgunServerSideRewind(const TArray<ABaseCharacter*>& HitCharacters, const FVector_NetQuantize& TraceStart, const TArray<FVector_NetQuantize>& HitLocations, float HitTime) const;
 
 	UFUNCTION(Server, Reliable)
 	void ServerScoreRequest(ABaseCharacter* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize& HitLocation, float HitTime);

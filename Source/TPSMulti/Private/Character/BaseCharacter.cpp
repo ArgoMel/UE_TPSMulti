@@ -4,7 +4,6 @@
 #include "Weapon/Weapon.h"
 #include "Component/CombatComponent.h"
 #include "Component/BuffComponent.h"
-#include "Character/BaseAnimInstance.h"
 #include "PlayerController/BasePlayerController.h"
 #include "GameMode/BaseGameMode.h"
 #include "PlayerState/BasePlayerState.h"
@@ -23,7 +22,6 @@
 #include "Sound/SoundCue.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Components/BoxComponent.h"
-#include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 
 ABaseCharacter::ABaseCharacter()
@@ -140,7 +138,7 @@ ABaseCharacter::ABaseCharacter()
 	foot_r->SetupAttachment(GetMesh(), BONE_RIGHTFOOT);
 	HitCollisionBoxes.Add(BONE_RIGHTFOOT, foot_r);
 
-	for (auto& box : HitCollisionBoxes)
+	for (const auto& box : HitCollisionBoxes)
 	{
 		if (box.Value)
 		{
@@ -255,7 +253,7 @@ void ABaseCharacter::Destroyed()
 	}
 }
 
-void ABaseCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
+void ABaseCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon) const
 {
 	if (OverlappingWeapon)
 	{
@@ -304,7 +302,7 @@ void ABaseCharacter::TurnInPlace(float DeltaTime)
 	}
 }
 
-void ABaseCharacter::HideCameraIfCharacterClose()
+void ABaseCharacter::HideCameraIfCharacterClose() const
 {
 	if(!IsLocallyControlled())
 	{
@@ -332,7 +330,7 @@ void ABaseCharacter::HideCameraIfCharacterClose()
 	}
 }
 
-float ABaseCharacter::CalculateSpeed()
+float ABaseCharacter::CalculateSpeed() const
 {
 	return GetVelocity().Size2D();
 }
@@ -564,7 +562,7 @@ void ABaseCharacter::FireButton(bool bPressed)
 	Combat->FireButtonPressed(bPressed);
 }
 
-void ABaseCharacter::PlayHitReactMontage()
+void ABaseCharacter::PlayHitReactMontage() const
 {
 	if (!Combat
 		|| !Combat->EquippedWeapon)
@@ -588,7 +586,7 @@ void ABaseCharacter::GrenadeButtonPressed()
 	}
 }
 
-void ABaseCharacter::DropOrDestroyWeapon(AWeapon* Weapon)
+void ABaseCharacter::DropOrDestroyWeapon(AWeapon* Weapon) const
 {
 	if (!Weapon)
 	{
@@ -604,7 +602,7 @@ void ABaseCharacter::DropOrDestroyWeapon(AWeapon* Weapon)
 	}
 }
 
-void ABaseCharacter::DropOrDestroyWeapons()
+void ABaseCharacter::DropOrDestroyWeapons() const
 {
 	if (Combat)
 	{
@@ -707,7 +705,7 @@ void ABaseCharacter::RotateInPlace(float DeltaTime)
 	}
 }
 
-void ABaseCharacter::PlayFireMontage(bool bAiming)
+void ABaseCharacter::PlayFireMontage(bool bAiming) const
 {
 	if(!Combat
 		||!Combat->EquippedWeapon)
@@ -731,7 +729,7 @@ void ABaseCharacter::PlayFireMontage(bool bAiming)
 	}
 }
 
-void ABaseCharacter::PlayReloadMontage()
+void ABaseCharacter::PlayReloadMontage() const
 {
 	if (!Combat
 		|| !Combat->EquippedWeapon)
@@ -747,7 +745,7 @@ void ABaseCharacter::PlayReloadMontage()
 	}
 }
 
-void ABaseCharacter::PlayElimMontage()
+void ABaseCharacter::PlayElimMontage() const
 {
 	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
 	if (animInstance && ElimMontage)
@@ -756,7 +754,7 @@ void ABaseCharacter::PlayElimMontage()
 	}
 }
 
-void ABaseCharacter::PlayThrowGrenadeMontage()
+void ABaseCharacter::PlayThrowGrenadeMontage() const
 {
 	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
 	if (animInstance && ThrowGrenadeMontage)
@@ -851,7 +849,7 @@ void ABaseCharacter::UpdateHUDAmmo()
 	}
 }
 
-void ABaseCharacter::SpawnDefaultWeapon()
+void ABaseCharacter::SpawnDefaultWeapon() const
 {
 	ABaseGameMode* baseGameMode = Cast<ABaseGameMode>(UGameplayStatics::GetGameMode(this));
 	UWorld* world = GetWorld();
@@ -901,17 +899,17 @@ void ABaseCharacter::SetOverlappingWeapon(AWeapon* Weapon)
 	}
 }
 
-bool ABaseCharacter::IsWeaponEquipped()
+bool ABaseCharacter::IsWeaponEquipped() const
 {
 	return Combat&&Combat->EquippedWeapon;
 }
 
-bool ABaseCharacter::IsAiming()
+bool ABaseCharacter::IsAiming() const
 {
 	return Combat&&Combat->bAiming;
 }
 
-AWeapon* ABaseCharacter::GetEquippedWeapon()
+AWeapon* ABaseCharacter::GetEquippedWeapon() const
 {
 	if(!Combat)
 	{
@@ -938,7 +936,7 @@ ECombatState ABaseCharacter::GetCombatState() const
 	return Combat->CombatState;
 }
 
-bool ABaseCharacter::IsLocallyReloading()
+bool ABaseCharacter::IsLocallyReloading() const
 {
 	if(!Combat)
 	{
