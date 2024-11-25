@@ -28,7 +28,7 @@ void ABasePlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 void ABasePlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
-	ABaseCharacter* baseCharacter = Cast<ABaseCharacter>(InPawn);
+	const ABaseCharacter* baseCharacter = Cast<ABaseCharacter>(InPawn);
 	if (baseCharacter)
 	{
 		SetHUDHealth(baseCharacter->GetHealth(), baseCharacter->GetMaxHealth());
@@ -136,7 +136,7 @@ void ABasePlayerController::PollInit()
 			CharacterOverlay = BaseHUD->CharacterOverlay;
 			if(CharacterOverlay)
 			{
-				ABasePlayerState* basePlayerState = GetPlayerState<ABasePlayerState>();
+				const ABasePlayerState* basePlayerState = GetPlayerState<ABasePlayerState>();
 				if(basePlayerState)
 				{
 					if (bInitializeScore)
@@ -149,7 +149,7 @@ void ABasePlayerController::PollInit()
 					}
 				}
 
-				ABaseCharacter* baseCharacter = Cast<ABaseCharacter>(GetPawn());
+				const ABaseCharacter* baseCharacter = Cast<ABaseCharacter>(GetPawn());
 				if (baseCharacter)
 				{
 					if (bInitializeHealth)
@@ -185,14 +185,15 @@ void ABasePlayerController::PollInit()
 
 void ABasePlayerController::ServerRequestServerTime_Implementation(float TimeOfClientRequest)
 {
-	float serverTimeOfReceipt = GetWorld()->GetTimeSeconds();
+	const float serverTimeOfReceipt = GetWorld()->GetTimeSeconds();
 	ClientReportServerTime(TimeOfClientRequest, serverTimeOfReceipt);
 }
 
 void ABasePlayerController::ClientReportServerTime_Implementation(float TimeOfClientRequest, float TimeServerReceivedClientRequest)
 {
-	float roundTripTime = GetWorld()->GetTimeSeconds() - TimeOfClientRequest;
-	float curServerTime = TimeServerReceivedClientRequest+(0.5f*roundTripTime);
+	const float roundTripTime = GetWorld()->GetTimeSeconds() - TimeOfClientRequest;
+	SingleTripTime=0.5f*roundTripTime;
+	const float curServerTime = TimeServerReceivedClientRequest+SingleTripTime;
 	ClientServerDelta = curServerTime- GetWorld()->GetTimeSeconds();
 }
 
@@ -209,7 +210,7 @@ void ABasePlayerController::CheckTimeSync(float DeltaTime)
 
 void ABasePlayerController::ServerCheckMatchState_Implementation()
 {
-	ABaseGameMode* gameMode = Cast<ABaseGameMode>(UGameplayStatics::GetGameMode(this));
+	const ABaseGameMode* gameMode = Cast<ABaseGameMode>(UGameplayStatics::GetGameMode(this));
 	if(gameMode)
 	{
 		WarmupTime = gameMode->WarmupTime;
@@ -327,7 +328,7 @@ void ABasePlayerController::SetHUDHealth(float Health, float MaxHealth)
 	{
 		const float healthPercent = Health / MaxHealth;
 		BaseHUD->CharacterOverlay->HealthBar->SetPercent(healthPercent);
-		FString healthText = FString::Printf(TEXT("%d/%d"), FMath::CeilToInt(Health), FMath::CeilToInt(MaxHealth));
+		const FString healthText = FString::Printf(TEXT("%d/%d"), FMath::CeilToInt(Health), FMath::CeilToInt(MaxHealth));
 		BaseHUD->CharacterOverlay->HealthText->SetText(FText::FromString(healthText));
 	}
 	else
@@ -345,7 +346,7 @@ void ABasePlayerController::SetHUDShield(float Shield, float MaxShield)
 	{
 		const float shieldPercent = Shield / MaxShield;
 		BaseHUD->CharacterOverlay->ShieldBar->SetPercent(shieldPercent);
-		FString shieldText = FString::Printf(TEXT("%d/%d"), FMath::CeilToInt(Shield), FMath::CeilToInt(MaxShield));
+		const FString shieldText = FString::Printf(TEXT("%d/%d"), FMath::CeilToInt(Shield), FMath::CeilToInt(MaxShield));
 		BaseHUD->CharacterOverlay->ShieldText->SetText(FText::FromString(shieldText));
 	}
 	else
@@ -356,12 +357,12 @@ void ABasePlayerController::SetHUDShield(float Shield, float MaxShield)
 
 void ABasePlayerController::SetHUDScore(float Score)
 {
-	bool bHUDValid = GetBaseHUD() &&
+	const bool bHUDValid = GetBaseHUD() &&
 		BaseHUD->CharacterOverlay &&
 		BaseHUD->CharacterOverlay->ScoreAmount;
 	if (bHUDValid)
 	{
-		FString scoreText = FString::Printf(TEXT("%d"), FMath::CeilToInt(Score));
+		const FString scoreText = FString::Printf(TEXT("%d"), FMath::CeilToInt(Score));
 		BaseHUD->CharacterOverlay->ScoreAmount->SetText(FText::FromString(scoreText));
 	}
 	else
@@ -372,12 +373,12 @@ void ABasePlayerController::SetHUDScore(float Score)
 
 void ABasePlayerController::SetHUDDefeats(int32 Defeats)
 {
-	bool bHUDValid = GetBaseHUD() &&
+	const bool bHUDValid = GetBaseHUD() &&
 		BaseHUD->CharacterOverlay &&
 		BaseHUD->CharacterOverlay->DefeatsAmount;
 	if (bHUDValid)
 	{
-		FString defeatsText = FString::Printf(TEXT("%d"), Defeats);
+		const FString defeatsText = FString::Printf(TEXT("%d"), Defeats);
 		BaseHUD->CharacterOverlay->DefeatsAmount->SetText(FText::FromString(defeatsText));
 	}
 	else
@@ -394,7 +395,7 @@ void ABasePlayerController::SetHUDWeaponAmmo(int32 Ammo, EWeaponType WeaponType)
 		BaseHUD->CharacterOverlay->WeaponTypeText)
 	{
 		BaseHUD->CharacterOverlay->SetAmmoUI(Ammo != NO_WEAPON);
-		FString ammoText = FString::Printf(TEXT("%d"), Ammo);
+		const FString ammoText = FString::Printf(TEXT("%d"), Ammo);
 		BaseHUD->CharacterOverlay->WeaponAmmoAmount->SetText(FText::FromString(ammoText));
 		BaseHUD->CharacterOverlay->WeaponTypeText->SetText(UEnum::GetDisplayValueAsText(WeaponType));
 	}
@@ -426,7 +427,7 @@ void ABasePlayerController::SetHUDCarriedAmmo(int32 Ammo)
 
 void ABasePlayerController::SetHUDMatchCountdown(float CountdownTime)
 {
-	bool bHUDValid = GetBaseHUD() &&
+	const bool bHUDValid = GetBaseHUD() &&
 		BaseHUD->CharacterOverlay &&
 		BaseHUD->CharacterOverlay->MatchCountdownText;
 	if (bHUDValid)
@@ -437,9 +438,9 @@ void ABasePlayerController::SetHUDMatchCountdown(float CountdownTime)
 			return;
 		}
 
-		int32 minutes = FMath::FloorToInt(CountdownTime / 60.f);
-		int32 seconds = CountdownTime- minutes*60;
-		FString countdownText = FString::Printf(TEXT("%02d:%02d"), minutes, seconds);
+		const int32 minutes = FMath::FloorToInt(CountdownTime / 60.f);
+		const int32 seconds = CountdownTime- minutes*60;
+		const FString countdownText = FString::Printf(TEXT("%02d:%02d"), minutes, seconds);
 		BaseHUD->CharacterOverlay->MatchCountdownText->SetText(FText::FromString(countdownText));
 
 		BaseHUD->CharacterOverlay->PlayBlinkTextAnim(CountdownTime < 30.f);
@@ -448,7 +449,7 @@ void ABasePlayerController::SetHUDMatchCountdown(float CountdownTime)
 
 void ABasePlayerController::SetHUDAnnouncementCountdown(float CountdownTime)
 {
-	bool bHUDValid = GetBaseHUD() &&
+	const bool bHUDValid = GetBaseHUD() &&
 		BaseHUD->Announcement &&
 		BaseHUD->Announcement->WarmupTime;
 	if (bHUDValid)
@@ -459,9 +460,9 @@ void ABasePlayerController::SetHUDAnnouncementCountdown(float CountdownTime)
 			return;
 		}
 
-		int32 minutes = FMath::FloorToInt(CountdownTime / 60.f);
-		int32 seconds = CountdownTime - minutes * 60;
-		FString countdownText = FString::Printf(TEXT("%02d:%02d"), minutes, seconds);
+		const int32 minutes = FMath::FloorToInt(CountdownTime / 60.f);
+		const int32 seconds = CountdownTime - minutes * 60;
+		const FString countdownText = FString::Printf(TEXT("%02d:%02d"), minutes, seconds);
 		BaseHUD->Announcement->WarmupTime->SetText(FText::FromString(countdownText));
 	}
 }
@@ -544,11 +545,11 @@ void ABasePlayerController::HandleCooldown()
 			BaseHUD->Announcement->InfoText)
 		{
 			BaseHUD->Announcement->SetVisibility(ESlateVisibility::HitTestInvisible);
-			FString announcementText(TEXT("New Match Starts In: "));
+			const FString announcementText(TEXT("New Match Starts In: "));
 			BaseHUD->Announcement->AnnouncementText->SetText(FText::FromString(announcementText));
 
-			ABaseGameState* baseGameState = Cast<ABaseGameState>(UGameplayStatics::GetGameState(this));
-			ABasePlayerState* basePlayerState = GetPlayerState<ABasePlayerState>();
+			const ABaseGameState* baseGameState = Cast<ABaseGameState>(UGameplayStatics::GetGameState(this));
+			const ABasePlayerState* basePlayerState = GetPlayerState<ABasePlayerState>();
 			if(baseGameState&&
 				basePlayerState)
 			{
@@ -571,7 +572,7 @@ void ABasePlayerController::HandleCooldown()
 				else if (topPlayers.Num() >1)
 				{
 					infoTextStr = TEXT("Players tied for the win:\n");
-					for(auto& tiedPlayer: topPlayers)
+					for(const auto& tiedPlayer: topPlayers)
 					{
 						infoTextStr.Append(FString::Printf(TEXT("%s\n"), *tiedPlayer->GetPlayerName()));
 					}

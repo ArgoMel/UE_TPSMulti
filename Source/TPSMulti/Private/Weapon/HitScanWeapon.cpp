@@ -3,7 +3,7 @@
 #include "Weapon/HitScanWeapon.h"
 #include "Character/BaseCharacter.h"
 #include "PlayerController/BasePlayerController.h"
-//#include "Component/LagCompensationComponent.h"
+#include "Component/LagCompensationComponent.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "Kismet/GameplayStatics.h"
 #include "particles/ParticleSystemComponent.h"
@@ -84,7 +84,7 @@ void AHitScanWeapon::Fire(const TArray<FVector_NetQuantize>& HitTargets)
 			}
 		}
 
-		// Calculate head shot damage by multiplying times hit x HeadShotDamage - store in DamageMap
+		// Calculate headshot damage by multiplying times hit x HeadShotDamage - store in DamageMap
 		for (auto& headShotHitPair : headShotHitMap)
 		{
 			if (headShotHitPair.Key)
@@ -131,23 +131,23 @@ void AHitScanWeapon::Fire(const TArray<FVector_NetQuantize>& HitTargets)
 			}
 			if (OwnerCharacter &&
 				OwnerController &&
-				//OwnerCharacter->GetLagCompensation() && 
+				OwnerCharacter->GetLagCompensation() && 
 				OwnerCharacter->IsLocallyControlled())
 			{
-				//OwnerCharacter->GetLagCompensation()->ShotgunServerScoreRequest(hitCharacters, start, HitTargets, OwnerController->GetServerTime() - OwnerController->SingleTripTime);
+				OwnerCharacter->GetLagCompensation()->HitscanServerScoreRequest(hitCharacters, start, HitTargets, OwnerController->GetServerTime() - OwnerController->SingleTripTime);
 			}
 		}
 	}
 }
 
-void AHitScanWeapon::WeaponTraceHit(const FVector& TraceStart, const FVector& HitTarget, FHitResult& OutHit)
+void AHitScanWeapon::WeaponTraceHit(const FVector& TraceStart, const FVector& HitTarget, FHitResult& OutHit) const
 {
-	UWorld* world = GetWorld();
+	const UWorld* world = GetWorld();
 	if (!world)
 	{
 		return;
 	}
-	FVector end = TraceStart + (HitTarget - TraceStart) * 1.25f;
+	const FVector end = TraceStart + (HitTarget - TraceStart) * 1.25f;
 
 	world->LineTraceSingleByChannel(OutHit, TraceStart, end, ECollisionChannel::ECC_Visibility);
 	FVector beamEnd = end;
