@@ -37,6 +37,10 @@
 		{
 			"Name": "VRM4U",
 			"Enabled": true
+		},
+		{
+			"Name": "StableDiffusionTools",
+			"Enabled": true
 		}
 	]
 }

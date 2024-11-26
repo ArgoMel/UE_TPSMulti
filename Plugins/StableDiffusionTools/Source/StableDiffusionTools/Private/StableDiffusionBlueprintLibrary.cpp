@@ -1,7 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "StableDiffusionBlueprintLibrary.h"
-#include "SLevelViewport.h"
 #include "Dialogs/Dialogs.h"
 #include "GeomTools.h"
 #include "TextureCompiler.h"
@@ -73,7 +72,7 @@ void UStableDiffusionBlueprintLibrary::RestartEditor()
 		FUnrealEdMisc::Get().RestartEditor(false);
 	}
 }
-
+#undef LOCTEXT_NAMESPACE
 
 FVector2D UStableDiffusionBlueprintLibrary::ProjectSceneCaptureWorldToUV(const FVector& WorldPosition, USceneCaptureComponent2D* SceneCapture, bool& BehindCamera)
 {
