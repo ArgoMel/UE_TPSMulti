@@ -4,7 +4,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Character/BaseCharacter.h"
 #include "PlayerController/BasePlayerController.h"
-//#include "Component/LagCompensationComponent.h"
+#include "Component/LagCompensationComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 
 AProjectileBullet::AProjectileBullet()
@@ -21,7 +21,7 @@ void AProjectileBullet::PostEditChangeProperty(FPropertyChangedEvent& Event)
 {
 	Super::PostEditChangeProperty(Event);
 
-	FName propertyName = Event.Property != nullptr ? Event.Property->GetFName() : NAME_None;
+	const FName propertyName = Event.Property != nullptr ? Event.Property->GetFName() : NAME_None;
 	if (propertyName == GET_MEMBER_NAME_CHECKED(AProjectileBullet, InitialSpeed))
 	{
 		if (ProjectileMovementComponent)
@@ -40,7 +40,7 @@ void AProjectileBullet::BeginPlay()
 
 void AProjectileBullet::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	ABaseCharacter* ownerCharacter = Cast<ABaseCharacter>(GetOwner());
+	const ABaseCharacter* ownerCharacter = Cast<ABaseCharacter>(GetOwner());
 	if (ownerCharacter)
 	{
 		ABasePlayerController* ownerController = Cast<ABasePlayerController>(ownerCharacter->Controller);
@@ -56,11 +56,11 @@ void AProjectileBullet::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, 
 			}
 			ABaseCharacter* hitCharacter = Cast<ABaseCharacter>(OtherActor);
 			if (bUseServerSideRewind && 
-				//ownerCharacter->GetLagCompensation() &&
+				ownerCharacter->GetLagCompensation() &&
 				ownerCharacter->IsLocallyControlled() &&
 				hitCharacter)
 			{
-				//ownerCharacter->GetLagCompensation()->ProjectileServerScoreRequest(hitCharacter, TraceStart, InitialVelocity, ownerController->GetServerTime() - OwnerController->SingleTripTime);
+				ownerCharacter->GetLagCompensation()->ProjectileServerScoreRequest(hitCharacter, TraceStart, InitialVelocity, ownerController->GetServerTime() - ownerController->SingleTripTime);
 			}
 		}
 	}

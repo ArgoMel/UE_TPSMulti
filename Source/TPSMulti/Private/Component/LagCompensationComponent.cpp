@@ -357,23 +357,22 @@ void ULagCompensationComponent::HitscanServerScoreRequest_Implementation(const T
 
 	for (auto& hitCharacter : HitCharacters)
 	{
-		if (!hitCharacter||
-			!hitCharacter->GetEquippedWeapon() ||
-			!Character)
+		if (!Character||
+			!Character->GetEquippedWeapon())
 		{
 			continue;
 		}
 		float totalDamage = 0.f;
 		if (confirm.HeadShots.Contains(hitCharacter))
 		{
-			const float headShotDamage = confirm.HeadShots[hitCharacter] * hitCharacter->GetEquippedWeapon()->GetHeadShotDamage();
+			const float headShotDamage = confirm.HeadShots[hitCharacter] * Character->GetEquippedWeapon()->GetHeadShotDamage();
 			totalDamage += headShotDamage;
 		}
 		if (confirm.BodyShots.Contains(hitCharacter))
 		{
-			const float bodyShotDamage = confirm.BodyShots[hitCharacter] * hitCharacter->GetEquippedWeapon()->GetDamage();
+			const float bodyShotDamage = confirm.BodyShots[hitCharacter] * Character->GetEquippedWeapon()->GetDamage();
 			totalDamage += bodyShotDamage;
 		}
-		UGameplayStatics::ApplyDamage(hitCharacter, totalDamage, Character->Controller, hitCharacter->GetEquippedWeapon(), UDamageType::StaticClass());
+		UGameplayStatics::ApplyDamage(hitCharacter, totalDamage, Character->Controller, Character->GetEquippedWeapon(), UDamageType::StaticClass());
 	}
 }
