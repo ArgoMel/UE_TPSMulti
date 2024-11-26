@@ -21,6 +21,22 @@ ARocketProjectile::ARocketProjectile()
 	RocketMovementComponent->SetIsReplicated(true);
 }
 
+#if WITH_EDITOR
+void ARocketProjectile::PostEditChangeProperty(FPropertyChangedEvent& Event)
+{
+	Super::PostEditChangeProperty(Event);
+	const FName propertyName = 	Event.GetPropertyName();
+	if (propertyName == GET_MEMBER_NAME_CHECKED(ThisClass, InitialSpeed))
+	{
+		if (RocketMovementComponent)
+		{
+			RocketMovementComponent->InitialSpeed = InitialSpeed;
+			RocketMovementComponent->MaxSpeed = InitialSpeed;
+		}
+	}
+}
+#endif
+
 void ARocketProjectile::BeginPlay()
 {
 	Super::BeginPlay();

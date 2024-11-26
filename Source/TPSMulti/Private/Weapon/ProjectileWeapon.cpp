@@ -14,16 +14,16 @@ void AProjectileWeapon::Fire(const TArray<FVector_NetQuantize>& HitTargets)
 		world&&
 		ProjectileClass)
 	{
-		FTransform socketTransform = muzzleFlashSocket->GetSocketTransform(GetWeaponMesh());
+		const FTransform socketTransform = muzzleFlashSocket->GetSocketTransform(GetWeaponMesh());
 		// From muzzle flash socket to hit location from TraceUnderCrosshairs
-		FVector toTarget = HitTargets[0] - socketTransform.GetLocation();
-		FRotator targetRotation = toTarget.Rotation();
+		const FVector toTarget = HitTargets[0] - socketTransform.GetLocation();
+		const FRotator targetRotation = toTarget.Rotation();
 
 		FActorSpawnParameters spawnParams;
 		spawnParams.Owner = GetOwner();
 		spawnParams.Instigator = instigatorPawn;
 
-		AProjectile* spawnedProjectile = nullptr;
+		AProjectile* spawnedProjectile;
 		if (bUseServerSideRewind)
 		{
 			if (instigatorPawn->HasAuthority()) // server

@@ -221,7 +221,60 @@ FFramePackage ULagCompensationComponent::GetFrameToCheck(ABaseCharacter* HitChar
 
 FServerSideRewindResult ULagCompensationComponent::ProjectileConfirmHit(const FFramePackage& Package, ABaseCharacter* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize100& InitialVelocity, float HitTime) const
 {
-	return FServerSideRewindResult();
+	FFramePackage curFrame;
+	CacheBoxPositions(HitCharacter, curFrame);
+	MoveBoxes(HitCharacter, Package);
+	EnableCharacterMeshCollision(HitCharacter, ECollisionEnabled::NoCollision);
+
+	// Enable collision for the head first
+	UBoxComponent* headBox = HitCharacter->HitCollisionBoxes[BONE_HEAD];
+	headBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	headBox->SetCollisionResponseToChannel(ECC_HitBox, ECollisionResponse::ECR_Block);
+
+	FPredictProjectilePathParams pathParams;
+	pathParams.bTraceWithCollision = true;
+	pathParams.MaxSimTime = MaxRecordTime;
+	pathParams.LaunchVelocity = InitialVelocity;
+	pathParams.StartLocation = TraceStart;
+	pathParams.SimFrequency = 15.f;
+	pathParams.ProjectileRadius = 5.f;
+	pathParams.TraceChannel = ECC_HitBox;
+	pathParams.ActorsToIgnore.Add(GetOwner());
+	pathParams.DrawDebugTime=5.f;
+	pathParams.DrawDebugType=EDrawDebugTrace::ForDuration;
+
+	FPredictProjectilePathResult pathResult;
+	UGameplayStatics::PredictProjectilePath(this, pathParams, pathResult);
+
+	if (pathResult.HitResult.bBlockingHit) // we hit the head, return early
+	{
+		ResetHitBoxes(HitCharacter, curFrame);
+		EnableCharacterMeshCollision(HitCharacter, ECollisionEnabled::QueryAndPhysics);
+		return FServerSideRewindResult{ true, true };
+	}
+	else // we didn't hit the head; check the rest of the boxes
+	{
+		for (auto& hitBoxPair : HitCharacter->HitCollisionBoxes)
+		{
+			if (hitBoxPair.Value != nullptr)
+			{
+				hitBoxPair.Value->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+				hitBoxPair.Value->SetCollisionResponseToChannel(ECC_HitBox, ECollisionResponse::ECR_Block);
+			}
+		}
+
+		UGameplayStatics::PredictProjectilePath(this, pathParams, pathResult);
+		if (pathResult.HitResult.bBlockingHit)
+		{
+			ResetHitBoxes(HitCharacter, curFrame);
+			EnableCharacterMeshCollision(HitCharacter, ECollisionEnabled::QueryAndPhysics);
+			return FServerSideRewindResult{ true, false };
+		}
+	}
+
+	ResetHitBoxes(HitCharacter, curFrame);
+	EnableCharacterMeshCollision(HitCharacter, ECollisionEnabled::QueryAndPhysics);
+	return FServerSideRewindResult{ false, false };
 }
 
 FHitscanServerSideRewindResult ULagCompensationComponent::HitscanConfirmHit(const TArray<FFramePackage>& FramePackages, const FVector_NetQuantize& TraceStart, const TArray<FVector_NetQuantize>& HitLocations) const
@@ -331,7 +384,8 @@ void ULagCompensationComponent::ShowFramePackage(const FFramePackage& Package, c
 
 FServerSideRewindResult ULagCompensationComponent::ProjectileServerSideRewind(ABaseCharacter* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize100& InitialVelocity, float HitTime) const
 {
-	return FServerSideRewindResult();
+	const FFramePackage frameToCheck = GetFrameToCheck(HitCharacter, HitTime);
+	return ProjectileConfirmHit(frameToCheck, HitCharacter, TraceStart, InitialVelocity, HitTime);
 }
 
 FHitscanServerSideRewindResult ULagCompensationComponent::HitscanServerSideRewind(
@@ -349,6 +403,17 @@ FHitscanServerSideRewindResult ULagCompensationComponent::HitscanServerSideRewin
 
 void ULagCompensationComponent::ProjectileServerScoreRequest_Implementation(ABaseCharacter* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize100& InitialVelocity, float HitTime)
 {
+	const FServerSideRewindResult confirm = ProjectileServerSideRewind(HitCharacter, TraceStart, InitialVelocity, HitTime);
+
+	if (Character &&
+		HitCharacter &&
+		confirm.bHitConfirmed &&
+		Character->GetEquippedWeapon())
+	{
+		const float damage = confirm.bHeadShot ? Character->GetEquippedWeapon()->GetHeadShotDamage() : Character->GetEquippedWeapon()->GetDamage();
+
+		UGameplayStatics::ApplyDamage(HitCharacter, damage, Character->Controller, Character->GetEquippedWeapon(), UDamageType::StaticClass());
+	}
 }
 
 void ULagCompensationComponent::HitscanServerScoreRequest_Implementation(const TArray<ABaseCharacter*>& HitCharacters, const FVector_NetQuantize& TraceStart, const TArray<FVector_NetQuantize>& HitLocations, float HitTime)

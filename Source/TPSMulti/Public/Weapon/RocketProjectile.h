@@ -14,6 +14,9 @@ class TPSMULTI_API ARocketProjectile : public AProjectile
 public:
 	ARocketProjectile();
 protected:
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& Event) override;
+#endif
 	virtual void BeginPlay() override;
 	virtual void Destroyed() override;
 	virtual void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit) override;

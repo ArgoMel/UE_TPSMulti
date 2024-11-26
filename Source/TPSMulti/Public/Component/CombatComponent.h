@@ -120,7 +120,7 @@ private:
 	void StartFireTimer();
 	void FireTimerFinished();
 
-	bool CanFire();
+	bool CanFire() const;
 
 	UFUNCTION()
 	void OnRep_CarriedAmmo();
@@ -173,7 +173,7 @@ protected:
 	void ServerReload();
 	void ServerReload_Implementation();
 
-	void HandleReload();
+	void HandleReload() const;
 	int32 AmountToReload();
 
 	void ThrowGrenade();
@@ -182,15 +182,15 @@ protected:
 	void ServerThrowGrenade();
 	void ServerThrowGrenade_Implementation();
 
-	void DropEquippedWeapon();
-	void AttachActorToRightHand(AActor* ActorToAttach);
-	void AttachActorToLeftHand(AActor* ActorToAttach);
+	void DropEquippedWeapon() const;
+	void AttachActorToRightHand(AActor* ActorToAttach) const;
+	void AttachActorToLeftHand(AActor* ActorToAttach) const;
 	void AttachFlagToLeftHand(AWeapon* Flag);
-	void AttachActorToBackpack(AActor* ActorToAttach);
+	void AttachActorToBackpack(AActor* ActorToAttach) const;
 	void UpdateCarriedAmmo();
-	void PlayEquipWeaponSound(AWeapon* WeaponToEquip);
+	void PlayEquipWeaponSound(AWeapon* WeaponToEquip) const;
 	void ReloadEmptyWeapon();
-	void ShowAttachedGrenade(bool bShowGrenade);
+	void ShowAttachedGrenade(bool bShowGrenade) const;
 	void EquipPrimaryWeapon(AWeapon* WeaponToEquip);
 	void EquipSecondaryWeapon(AWeapon* WeaponToEquip);
 
@@ -212,7 +212,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ShotgunShellReload();
 
-	void JumpToShotgunEnd();
+	void JumpToShotgunEnd() const;
 
 	UFUNCTION(BlueprintCallable)
 	void ThrowGrenadeFinished();
@@ -226,7 +226,7 @@ public:
 
 	void PickupAmmo(EWeaponType WeaponType, int32 AmmoAmount);
 
-	bool ShouldSwapWeapons();
+	bool ShouldSwapWeapons() const;
 
 	FORCEINLINE AWeapon* GetEquippedWeapon() const { return EquippedWeapon; }
 	FORCEINLINE int32 GetCarriedAmmo() const { return CarriedAmmo; }

@@ -142,9 +142,9 @@ ABaseCharacter::ABaseCharacter()
 	{
 		if (box.Value)
 		{
-			//box.Value->SetCollisionObjectType(ECC_HitBox);
+			box.Value->SetCollisionObjectType(ECC_HitBox);
 			box.Value->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-			//box.Value->SetCollisionResponseToChannel(ECC_HitBox, ECollisionResponse::ECR_Block);
+			box.Value->SetCollisionResponseToChannel(ECC_HitBox, ECollisionResponse::ECR_Block);
 			box.Value->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		}
 	}

@@ -13,7 +13,7 @@ public:
 	AProjectileBullet();
 protected:
 #if WITH_EDITOR
-	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& Event) override;
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& Event) override;
 #endif
 	virtual void BeginPlay() override;
 

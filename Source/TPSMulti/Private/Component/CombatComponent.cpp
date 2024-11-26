@@ -4,11 +4,9 @@
 #include "Weapon/Weapon.h"
 #include "Character/BaseCharacter.h"
 #include "PlayerController/BasePlayerController.h"
-#include "Character/BaseAnimInstance.h"
 #include "Weapon/Projectile.h"
 #include "Net/UnrealNetwork.h"
 #include "Engine/SkeletalMeshSocket.h"
-#include "Components/SphereComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "DrawDebugHelpers.h"
@@ -16,6 +14,22 @@
 #include "Sound/SoundCue.h"
 
 UCombatComponent::UCombatComponent()
+: Character(nullptr)
+, Controller(nullptr)
+, HUD(nullptr)
+, EquippedWeapon(nullptr)
+, SecondaryWeapon(nullptr)
+, bFireButtonPressed(false)
+, CrosshairVelocityFactor(0)
+, CrosshairInAirFactor(0)
+, CrosshairAimFactor(0)
+, CrosshairShootingFactor(0)
+, CrosshairEnemyFactor(0)
+, HitTarget()
+, DefaultFOV(0)
+, CurrentFOV(0)
+, CarriedAmmo(0)
+, TheFlag(nullptr)
 {
 	PrimaryComponentTick.bCanEverTick = true;
 
@@ -46,7 +60,7 @@ void UCombatComponent::BeginPlay()
 	if(Character)
 	{
 		Character->GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
-		if(UCameraComponent* camera=Character->GetFollowCamera())
+		if(const UCameraComponent* camera=Character->GetFollowCamera())
 		{
 			DefaultFOV = camera->FieldOfView;
 			CurrentFOV = DefaultFOV;
@@ -122,7 +136,7 @@ void UCombatComponent::FireTimerFinished()
 	ReloadEmptyWeapon();
 }
 
-bool UCombatComponent::CanFire()
+bool UCombatComponent::CanFire() const
 {
 	if (!EquippedWeapon)
 	{
@@ -192,6 +206,7 @@ void UCombatComponent::OnRep_CombatState()
 			Character->PlaySwapMontage();
 		}
 		break;
+	default: ;
 	}
 }
 
@@ -560,7 +575,7 @@ void UCombatComponent::ServerReload_Implementation()
 	}
 }
 
-void UCombatComponent::HandleReload()
+void UCombatComponent::HandleReload() const
 {
 	if(Character)
 	{
@@ -636,7 +651,7 @@ void UCombatComponent::ServerThrowGrenade_Implementation()
 	UpdateHUDGrenades();
 }
 
-void UCombatComponent::DropEquippedWeapon()
+void UCombatComponent::DropEquippedWeapon() const
 {
 	if (EquippedWeapon)
 	{
@@ -644,7 +659,7 @@ void UCombatComponent::DropEquippedWeapon()
 	}
 }
 
-void UCombatComponent::AttachActorToRightHand(AActor* ActorToAttach)
+void UCombatComponent::AttachActorToRightHand(AActor* ActorToAttach) const
 {
 	if(!Character||
 		!Character->GetMesh()||
@@ -659,7 +674,7 @@ void UCombatComponent::AttachActorToRightHand(AActor* ActorToAttach)
 	}
 }
 
-void UCombatComponent::AttachActorToLeftHand(AActor* ActorToAttach)
+void UCombatComponent::AttachActorToLeftHand(AActor* ActorToAttach) const
 {
 	if (!Character ||
 		!Character->GetMesh() ||
@@ -690,7 +705,7 @@ void UCombatComponent::AttachFlagToLeftHand(AWeapon* Flag)
 {
 }
 
-void UCombatComponent::AttachActorToBackpack(AActor* ActorToAttach)
+void UCombatComponent::AttachActorToBackpack(AActor* ActorToAttach) const
 {
 	if (!Character ||
 		!Character->GetMesh() ||
@@ -726,7 +741,7 @@ void UCombatComponent::UpdateCarriedAmmo()
 	}
 }
 
-void UCombatComponent::PlayEquipWeaponSound(AWeapon* WeaponToEquip)
+void UCombatComponent::PlayEquipWeaponSound(AWeapon* WeaponToEquip) const
 {
 	if (Character&& WeaponToEquip&&WeaponToEquip->EquipSound)
 	{
@@ -742,7 +757,7 @@ void UCombatComponent::ReloadEmptyWeapon()
 	}
 }
 
-void UCombatComponent::ShowAttachedGrenade(bool bShowGrenade)
+void UCombatComponent::ShowAttachedGrenade(bool bShowGrenade) const
 {
 	if(Character&&Character->GetAttachedGrenade())
 	{
@@ -890,7 +905,7 @@ void UCombatComponent::ShotgunShellReload()
 	}	
 }
 
-void UCombatComponent::JumpToShotgunEnd()
+void UCombatComponent::JumpToShotgunEnd() const
 {
 	UAnimInstance* animInstance = Character->GetMesh()->GetAnimInstance();
 	if (animInstance && Character->GetReloadMontage())
@@ -921,7 +936,7 @@ void UCombatComponent::ServerLaunchGrenade_Implementation(const FVector_NetQuant
 		Character->GetAttachedGrenade())
 	{
 		const FVector startingLoc = Character->GetAttachedGrenade()->GetComponentLocation();
-		FVector toTarget = HitTarget - startingLoc;
+		const FVector toTarget = HitTarget - startingLoc;
 		FActorSpawnParameters spawnParams;
 		spawnParams.Owner = Character;
 		spawnParams.Instigator = Character;
@@ -949,7 +964,7 @@ void UCombatComponent::PickupAmmo(EWeaponType WeaponType, int32 AmmoAmount)
 	}
 }
 
-bool UCombatComponent::ShouldSwapWeapons()
+bool UCombatComponent::ShouldSwapWeapons() const
 {
 	return EquippedWeapon&&SecondaryWeapon;
 }

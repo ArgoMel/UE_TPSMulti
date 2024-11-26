@@ -21,7 +21,7 @@ void AProjectileBullet::PostEditChangeProperty(FPropertyChangedEvent& Event)
 {
 	Super::PostEditChangeProperty(Event);
 
-	const FName propertyName = Event.Property != nullptr ? Event.Property->GetFName() : NAME_None;
+	const FName propertyName = 	Event.GetPropertyName();
 	if (propertyName == GET_MEMBER_NAME_CHECKED(AProjectileBullet, InitialSpeed))
 	{
 		if (ProjectileMovementComponent)
@@ -48,7 +48,7 @@ void AProjectileBullet::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, 
 		{
 			if (ownerCharacter->HasAuthority() && !bUseServerSideRewind)
 			{
-				const float damageToCause = Hit.BoneName.ToString() == FString("head") ? HeadShotDamage : Damage;
+				const float damageToCause = Hit.BoneName == BONE_HEAD ? HeadShotDamage : Damage;
 
 				UGameplayStatics::ApplyDamage(OtherActor, damageToCause, ownerController, this, UDamageType::StaticClass());
 				Super::OnHit(HitComp, OtherActor, OtherComp, NormalImpulse, Hit);
