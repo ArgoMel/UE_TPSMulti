@@ -68,29 +68,62 @@ void ABaseGameMode::Tick(float DeltaTime)
 
 void ABaseGameMode::PlayerEliminated(ABaseCharacter* ElimmedCharacter, ABasePlayerController* VictimController, ABasePlayerController* AttackerController)
 {
-	if(AttackerController&& VictimController)
+	if(!AttackerController||
+		! VictimController)
 	{
-		ABasePlayerState* attackerPlayerState =Cast<ABasePlayerState>(AttackerController->PlayerState);
-		ABasePlayerState* victimPlayerState =Cast<ABasePlayerState>(VictimController->PlayerState);
-		ABaseGameState* baseGameState = GetGameState<ABaseGameState>();
-
-		if(attackerPlayerState&&
-			attackerPlayerState!= victimPlayerState&&
-			baseGameState)
+		return;
+	}
+	ABasePlayerState* attackerPlayerState =Cast<ABasePlayerState>(AttackerController->PlayerState);
+	ABasePlayerState* victimPlayerState =Cast<ABasePlayerState>(VictimController->PlayerState);
+	ABaseGameState* baseGameState = GetGameState<ABaseGameState>();
+	if(attackerPlayerState&&
+		attackerPlayerState!= victimPlayerState&&
+		baseGameState)
+	{
+		TArray<ABasePlayerState*> playersCurrentlyInTheLead(baseGameState->TopScoringPlayers);
+		
+		attackerPlayerState->AddToScore(1.f);
+		baseGameState->UpdateTopScore(attackerPlayerState);
+		if (baseGameState->TopScoringPlayers.Contains(attackerPlayerState))
 		{
-			attackerPlayerState->AddToScore(1.f);
-			baseGameState->UpdateTopScore(attackerPlayerState);
+			ABaseCharacter* leader=Cast<ABaseCharacter>(attackerPlayerState->GetPawn());
+			if (leader)
+			{
+				leader->MulticastGainedTheLead();
+			}
+		}
 
-		}
-		if(victimPlayerState)
+		for (int32 i = 0; i < playersCurrentlyInTheLead.Num(); ++i)
 		{
-			victimPlayerState->AddToDefeats(1);
+			if (!baseGameState->TopScoringPlayers.Contains(playersCurrentlyInTheLead[i]))
+			{
+				ABaseCharacter* loser=Cast<ABaseCharacter>(playersCurrentlyInTheLead[i]->GetPawn());
+				if (loser)
+				{
+					loser->MulticastLostTheLead();
+				}
+			}
 		}
+	}
+	if(victimPlayerState)
+	{
+		victimPlayerState->AddToDefeats(1);
 	}
 
 	if(ElimmedCharacter)
 	{
 		ElimmedCharacter->Elim(false);
+	}
+
+	for (auto it = GetWorld()->GetPlayerControllerIterator(); it; ++it)
+	{
+		ABasePlayerController* basePlayer=Cast<ABasePlayerController>(*it);
+		if (basePlayer&&
+			attackerPlayerState&&
+			victimPlayerState)
+		{
+			basePlayer->BroadcastElim(attackerPlayerState,victimPlayerState);
+		}
 	}
 }
 
@@ -110,8 +143,22 @@ void ABaseGameMode::RequestRespawn(ACharacter* ElimmedCharacter, AController* El
 	}
 }
 
-void ABaseGameMode::PlayerLeftGame(ABasePlayerState* PlayerLeaving)
+void ABaseGameMode::PlayerLeftGame(ABasePlayerState* PlayerLeaving) const
 {
+	if (PlayerLeaving)
+	{
+		return;
+	}
+	ABaseGameState* baseGameState = GetGameState<ABaseGameState>();
+	if (baseGameState&&baseGameState->TopScoringPlayers.Contains(PlayerLeaving))
+	{
+		baseGameState->TopScoringPlayers.Remove(PlayerLeaving);
+	}
+	ABaseCharacter* characterLeaving=Cast<ABaseCharacter>(PlayerLeaving->GetPawn());
+	if (characterLeaving)
+	{
+		characterLeaving->Elim(true);
+	}
 }
 
 float ABaseGameMode::CalculateDamage(AController* Attacker, AController* Victim, float BaseDamage)

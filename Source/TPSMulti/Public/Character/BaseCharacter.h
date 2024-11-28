@@ -134,7 +134,7 @@ private:
 	UPROPERTY(EditAnywhere)
 	UCurveFloat* DissolveCurve;
 
-	// Dynamic instance that we can change at runtime
+	UPROPERTY()
 	TArray<UMaterialInstanceDynamic*> DynamicDissolveMaterialInstances;
 
 	// Elim effects

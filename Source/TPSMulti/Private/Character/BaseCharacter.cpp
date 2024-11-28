@@ -1,6 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Character/BaseCharacter.h"
+
+#include "NiagaraComponent.h"
 #include "Weapon/Weapon.h"
 #include "Component/CombatComponent.h"
 #include "Component/BuffComponent.h"
@@ -8,8 +10,6 @@
 #include "GameMode/BaseGameMode.h"
 #include "PlayerState/BasePlayerState.h"
 #include "Component/LagCompensationComponent.h"
-//#include "Blaster/GameState/BlasterGameState.h"
-//#include "Blaster/PlayerStart/TeamPlayerStart.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -23,6 +23,7 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "Components/BoxComponent.h"
 #include "NiagaraFunctionLibrary.h"
+#include "GameState/BaseGameState.h"
 
 ABaseCharacter::ABaseCharacter()
 {
@@ -359,15 +360,19 @@ void ABaseCharacter::ElimTimerFinished()
 	{
 		BaseGameMode = GetWorld()->GetAuthGameMode<ABaseGameMode>();
 	}
-	if(BaseGameMode)
+	if(BaseGameMode&&!bLeftGame)
 	{
 		BaseGameMode->RequestRespawn(this,Controller);
+	}
+	if (bLeftGame&&IsLocallyControlled())
+	{
+		OnLeftGame.Broadcast();
 	}
 }
 
 void ABaseCharacter::UpdateDissolveMaterial(float DissolveValue)
 {
-	for (auto& mat : DynamicDissolveMaterialInstances)
+	for (const auto& mat : DynamicDissolveMaterialInstances)
 	{
 		mat->SetScalarParameterValue(MAT_PARAM_DISSOVE, DissolveValue);
 	}
@@ -639,6 +644,10 @@ void ABaseCharacter::SetSpawnPoint()
 
 void ABaseCharacter::OnPlayerStateInitialized()
 {
+	BasePlayerState->AddToScore(0.f);
+	BasePlayerState->AddToDefeats(0);
+	SetTeamColor(BasePlayerState->GetTeam());
+	SetSpawnPoint();
 }
 
 void ABaseCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatorController, AActor* DamageCauser)
@@ -679,8 +688,14 @@ void ABaseCharacter::PollInit()
 		BasePlayerState=GetPlayerState<ABasePlayerState>();
 		if (BasePlayerState)
 		{
-			BasePlayerState->AddToScore(0.f);
-			BasePlayerState->AddToDefeats(0);
+			OnPlayerStateInitialized();
+
+			const ABaseGameState* baseGameState = Cast<ABaseGameState>(UGameplayStatics::GetGameState(this));
+
+			if (baseGameState && baseGameState->TopScoringPlayers.Contains(BasePlayerState))
+			{
+				MulticastGainedTheLead();
+			}
 		}
 	}
 	if (!BasePlayerController)
@@ -788,15 +803,19 @@ void ABaseCharacter::Elim(bool bPlayerLeftGame)
 {
 	DropOrDestroyWeapons();
 	MulticastElim(bPlayerLeftGame);
-	GetWorld()->GetTimerManager().SetTimer(ElimTimer, this, &ThisClass::ElimTimerFinished, ElimDelay);
 }
 
 void ABaseCharacter::MulticastElim_Implementation(bool bPlayerLeftGame)
 {
+	bLeftGame=bPlayerLeftGame;
+	if (BasePlayerController)
+	{
+		BasePlayerController->SetHUDWeaponAmmo(0);
+	}
 	bElimmed = true;
 	PlayElimMontage();
 	
-	for(auto& mat:DynamicDissolveMaterialInstances)
+	for(const auto& mat:DynamicDissolveMaterialInstances)
 	{
 		mat->SetScalarParameterValue(MAT_PARAM_DISSOVE,1.05f);
 		mat->SetScalarParameterValue(MAT_PARAM_DISSOVEGLOW,200.f);
@@ -809,13 +828,14 @@ void ABaseCharacter::MulticastElim_Implementation(bool bPlayerLeftGame)
 	{
 		Combat->FireButtonPressed(false);
 	}
-
+	
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
+	AttachedGrenade->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	
 	if(ElimBotEffect)
 	{
-		FVector elimBotSpawnPoint(GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z+200.f);
+		const FVector elimBotSpawnPoint(GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z+200.f);
 		ElimBotComponent= UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ElimBotEffect, elimBotSpawnPoint,GetActorRotation());
 	}
 	if(ElimBotSound)
@@ -830,6 +850,11 @@ void ABaseCharacter::MulticastElim_Implementation(bool bPlayerLeftGame)
 	{
 		ShowSniperScopeWidget(false);
 	}
+	if (CrownComponent)
+	{
+		CrownComponent->DestroyComponent();
+	}
+	GetWorld()->GetTimerManager().SetTimer(ElimTimer, this, &ThisClass::ElimTimerFinished, ElimDelay);
 }
 
 void ABaseCharacter::UpdateHUDHealth()
@@ -868,7 +893,7 @@ void ABaseCharacter::UpdateHUDAmmo()
 
 void ABaseCharacter::SpawnDefaultWeapon() const
 {
-	ABaseGameMode* baseGameMode = Cast<ABaseGameMode>(UGameplayStatics::GetGameMode(this));
+	const ABaseGameMode* baseGameMode = Cast<ABaseGameMode>(UGameplayStatics::GetGameMode(this));
 	UWorld* world = GetWorld();
 	if(baseGameMode&&
 		world&&
@@ -886,14 +911,42 @@ void ABaseCharacter::SpawnDefaultWeapon() const
 
 void ABaseCharacter::ServerLeaveGame_Implementation()
 {
+	if(!BaseGameMode)
+	{
+		BaseGameMode = GetWorld()->GetAuthGameMode<ABaseGameMode>();
+	}
+	if(!BasePlayerState)
+	{
+		BasePlayerState=GetPlayerState<ABasePlayerState>();
+	}
+	if(BaseGameMode&&BasePlayerState)
+	{
+		BaseGameMode->PlayerLeftGame(BasePlayerState);
+	}
 }
 
 void ABaseCharacter::MulticastGainedTheLead_Implementation()
 {
+	if (!CrownSystem)
+	{
+		return;
+	}
+	if (!CrownComponent)
+	{
+		CrownComponent=UNiagaraFunctionLibrary::SpawnSystemAttached(CrownSystem,GetCapsuleComponent(),FName(),GetActorLocation()+FVector(0.f,0.f,110.f),GetActorRotation(),EAttachLocation::KeepWorldPosition,false);
+	}
+	if (CrownComponent)
+	{
+		CrownComponent->Activate();
+	}
 }
 
 void ABaseCharacter::MulticastLostTheLead_Implementation()
 {
+	if (CrownComponent)
+	{
+		CrownComponent->DestroyComponent();
+	}
 }
 
 void ABaseCharacter::SetTeamColor(ETeam Team)

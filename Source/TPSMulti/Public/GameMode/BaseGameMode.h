@@ -46,7 +46,7 @@ public:
 public:
 	virtual void PlayerEliminated(ABaseCharacter* ElimmedCharacter, ABasePlayerController* VictimController, ABasePlayerController* AttackerController);
 	virtual void RequestRespawn(ACharacter* ElimmedCharacter, AController* ElimmedController);
-	void PlayerLeftGame(ABasePlayerState* PlayerLeaving);
+	void PlayerLeftGame(ABasePlayerState* PlayerLeaving) const;
 	virtual float CalculateDamage(AController* Attacker, AController* Victim, float BaseDamage);
 
 	FORCEINLINE float GetCountdownTime() const { return CountdownTime; }

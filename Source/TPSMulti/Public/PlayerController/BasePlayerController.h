@@ -8,6 +8,7 @@
 class ABaseHUD;
 class ABaseGameMode;
 class UCharacterOverlayWidget;
+class UReturnToMainMenuWidget;
 class UUserWidget;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHighPingDelegate, bool, bPingTooHigh);
@@ -35,8 +36,8 @@ private:
 	UPROPERTY(EditAnywhere, Category = HUD)
 	TSubclassOf<UUserWidget> ReturnToMainMenuWidget;
 
-	//UPROPERTY()
-	//class UReturnToMainMenu* ReturnToMainMenu;
+	UPROPERTY()
+	UReturnToMainMenuWidget* ReturnToMainMenu;
 
 	bool bReturnToMainMenuOpen = false;
 
@@ -125,6 +126,7 @@ protected:
 	void StopHighPingWarning();
 	void CheckPing(float DeltaTime);
 
+	UFUNCTION(BlueprintCallable)
 	void ShowReturnToMainMenu();
 
 	UFUNCTION(Client, Reliable)

@@ -2,7 +2,6 @@
 
 #include "GameState/BaseGameState.h"
 #include "PlayerState/BasePlayerState.h"
-#include "PlayerController/BasePlayerController.h"
 #include "Net/UnrealNetwork.h"
 
 void ABaseGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

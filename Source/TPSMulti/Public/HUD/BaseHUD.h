@@ -1,7 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
-#include <TPSMulti/TPSMulti.h>
 #include "GameFramework/HUD.h"
 #include "BaseHUD.generated.h"
 
@@ -10,6 +9,7 @@ class APlayerController;
 class UUserWidget;
 class UCharacterOverlayWidget;
 class UAnnouncementWidget;
+class UElimAnnouncement;
 
 USTRUCT(BlueprintType)
 struct FHUDPackage
@@ -57,17 +57,17 @@ private:
 	UPROPERTY(EditAnywhere)
 	float CrosshairSpreadMax = 16.f;
 
-	//UPROPERTY(EditAnywhere)
-	//TSubclassOf<class UElimAnnouncement> ElimAnnouncementClass;
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UElimAnnouncement> ElimAnnouncementClass;
 
 	UPROPERTY(EditAnywhere)
 	float ElimAnnouncementTime = 2.5f;
 
-	//UFUNCTION()
-	//void ElimAnnouncementTimerFinished(UElimAnnouncement* MsgToRemove);
+	UFUNCTION()
+	void ElimAnnouncementTimerFinished(UElimAnnouncement* MsgToRemove);
 
-	//UPROPERTY()
-	//TArray<UElimAnnouncement*> ElimMessages;
+	UPROPERTY()
+	TArray<UElimAnnouncement*> ElimMessages;
 
 	bool bDrawCrosshair = true;
 

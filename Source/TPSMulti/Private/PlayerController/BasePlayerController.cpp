@@ -10,13 +10,13 @@
 #include "Component/CombatComponent.h"
 #include "Weapon/Weapon.h"
 #include "GameState/BaseGameState.h"
-//#include "HUD/ReturnToMainMenu.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
 #include "Net/UnrealNetwork.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/Image.h"
 #include "GameFramework/PlayerState.h"
+#include "HUD/ReturnToMainMenuWidget.h"
 
 void ABasePlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -305,10 +305,60 @@ void ABasePlayerController::CheckPing(float DeltaTime)
 
 void ABasePlayerController::ShowReturnToMainMenu()
 {
+	if (!ReturnToMainMenuWidget)
+	{
+		return;
+	}
+	if (!ReturnToMainMenu)
+	{
+		ReturnToMainMenu=CreateWidget<UReturnToMainMenuWidget>(this,ReturnToMainMenuWidget);
+	}
+	if (ReturnToMainMenu)
+	{
+		bReturnToMainMenuOpen=!bReturnToMainMenuOpen;
+		if (bReturnToMainMenuOpen)
+		{
+			ReturnToMainMenu->MenuSetup();
+		}
+		else
+		{
+			ReturnToMainMenu->MenuTearDown();
+		}
+	}
 }
 
 void ABasePlayerController::ClientElimAnnouncement_Implementation(APlayerState* Attacker, APlayerState* Victim)
 {
+	const APlayerState* self=GetPlayerState<APlayerState>();
+	if (self&&
+		Victim&&
+		Attacker)
+	{
+		if (GetBaseHUD())
+		{
+			if (Attacker==self&&Victim!=self)
+			{
+				BaseHUD->AddElimAnnouncement(TEXT("You"),Victim->GetPlayerName());
+				return;
+			}
+			if (Victim==self&&Attacker!=self)
+			{
+				BaseHUD->AddElimAnnouncement(Attacker->GetPlayerName(),TEXT("You"));
+				return;
+			}
+			if (Attacker==Victim&&Attacker==self)
+			{
+				BaseHUD->AddElimAnnouncement(TEXT("You"),TEXT("Yourself"));
+				return;
+			}
+			if (Attacker==Victim&&Attacker!=self)
+			{
+				BaseHUD->AddElimAnnouncement(Attacker->GetPlayerName(),TEXT("Themselves"));
+				return;
+			}
+			BaseHUD->AddElimAnnouncement(Attacker->GetPlayerName(),Victim->GetPlayerName());
+		}
+	}
 }
 
 void ABasePlayerController::OnRep_ShowTeamScores()
@@ -598,6 +648,7 @@ void ABasePlayerController::HandleCooldown()
 
 void ABasePlayerController::BroadcastElim(APlayerState* Attacker, APlayerState* Victim)
 {
+	ClientElimAnnouncement(Attacker, Victim);	
 }
 
 ABaseHUD* ABasePlayerController::GetBaseHUD()

@@ -3,11 +3,9 @@
 #include "HUD/BaseHUD.h"
 #include "HUD/CharacterOverlayWidget.h"
 #include "HUD/AnnouncementWidget.h"
-//#include "ElimAnnouncement.h
 #include "GameFramework/PlayerController.h"
-#include "Components/HorizontalBox.h"
-#include "Blueprint/WidgetLayoutLibrary.h"
-#include "Components/CanvasPanelSlot.h"
+#include "HUD/ElimAnnouncement.h"
+#include "TPSMulti/TPSMulti.h"
 
 void ABaseHUD::BeginPlay()
 {
@@ -22,7 +20,7 @@ void ABaseHUD::DrawHUD()
 	{
 		GEngine->GameViewport->GetViewportSize(viewportSize);
 		const FVector2D viewportCenter(viewportSize.X/2.f,viewportSize.Y/2.f);
-		float spreadScaled = CrosshairSpreadMax * HUDPackage.CrosshairSpread;
+		const float spreadScaled = CrosshairSpreadMax * HUDPackage.CrosshairSpread;
 
 		if(HUDPackage.CrosshairsCenter)
 		{
@@ -30,25 +28,29 @@ void ABaseHUD::DrawHUD()
 		}
 		if (HUDPackage.CrosshairsLeft)
 		{
-			FVector2D spread(-spreadScaled, 0.f);
+			const FVector2D spread(-spreadScaled, 0.f);
 			DrawCrosshair(HUDPackage.CrosshairsLeft, viewportCenter, spread, HUDPackage.CrosshairsColor);
 		}
 		if (HUDPackage.CrosshairsRight)
 		{
-			FVector2D spread(spreadScaled, 0.f);
+			const FVector2D spread(spreadScaled, 0.f);
 			DrawCrosshair(HUDPackage.CrosshairsRight, viewportCenter, spread, HUDPackage.CrosshairsColor);
 		}
 		if (HUDPackage.CrosshairsTop)
 		{
-			FVector2D spread(0.f, -spreadScaled);
+			const FVector2D spread(0.f, -spreadScaled);
 			DrawCrosshair(HUDPackage.CrosshairsTop, viewportCenter, spread, HUDPackage.CrosshairsColor);
 		}
 		if (HUDPackage.CrosshairsBottom)
 		{
-			FVector2D spread(0.f, spreadScaled);
+			const FVector2D spread(0.f, spreadScaled);
 			DrawCrosshair(HUDPackage.CrosshairsBottom, viewportCenter, spread, HUDPackage.CrosshairsColor);
 		}
 	}
+}
+
+void ABaseHUD::ElimAnnouncementTimerFinished(UElimAnnouncement* MsgToRemove)
+{
 }
 
 void ABaseHUD::DrawCrosshair(UTexture2D* Texture, FVector2D ViewportCenter, FVector2D Spread, FLinearColor CrosshairColor)
@@ -81,4 +83,15 @@ void ABaseHUD::AddAnnouncement()
 
 void ABaseHUD::AddElimAnnouncement(FString Attacker, FString Victim)
 {
+	APlayerController* playerController = GetOwningPlayerController();
+	if (playerController && ElimAnnouncementClass)
+	{
+		UElimAnnouncement* elimAnnouncementWidget=CreateWidget<UElimAnnouncement>(playerController, ElimAnnouncementClass);
+		if (elimAnnouncementWidget)
+		{
+			elimAnnouncementWidget->SetElimAnnouncementText(Attacker,Victim);
+			elimAnnouncementWidget->AddToViewport(TopHud);
+			ElimMessages.Add(elimAnnouncementWidget);
+		}
+	}
 }
