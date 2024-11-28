@@ -147,10 +147,10 @@ protected:
 	void ServerSetAiming_Implementation(bool bIsAiming);
 
 	UFUNCTION()
-	void OnRep_EquippedWeapon();
+	void OnRep_EquippedWeapon() const;
 
 	UFUNCTION()
-	void OnRep_SecondaryWeapon();
+	void OnRep_SecondaryWeapon() const;
 
 	void Fire();
 	void FireWeapon();

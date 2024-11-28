@@ -79,6 +79,7 @@ void ABasePlayerController::OnRep_MatchState()
 
 void ABasePlayerController::ServerReportPingStatus_Implementation(bool bHighPing)
 {
+	HighPingDelegate.Broadcast(bHighPing);
 }
 
 void ABasePlayerController::SetHUDTime()
@@ -279,6 +280,11 @@ void ABasePlayerController::CheckPing(float DeltaTime)
 			{
 				HighPingWarning();
 				PingAnimationRunningTime = 0.f;
+				ServerReportPingStatus(true);
+			}
+			else
+			{
+				ServerReportPingStatus(false);
 			}
 		}
 		HighPingRunningTime = 0.f;

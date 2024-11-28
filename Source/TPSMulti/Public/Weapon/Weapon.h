@@ -169,22 +169,21 @@ protected:
 	virtual void OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	UFUNCTION()
-	void OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
-		int32 OtherBodyIndex);
+	void OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,	int32 OtherBodyIndex);
 
 	UFUNCTION()
 	void OnPingTooHigh(bool bPingTooHigh);
 
 public:
 	void SetHUDAmmo();
-	void ShowPickupWidget(bool bShowWidget);
+	void ShowPickupWidget(bool bShowWidget) const;
 	virtual void Fire(const TArray<FVector_NetQuantize>& HitTargets);
 	virtual void Dropped();
 	void AddAmmo(int32 AmmoToAdd);
-	void TraceEndWithScatter(const FVector& HitTarget, TArray<FVector_NetQuantize>& HitTargets);
+	void TraceEndWithScatter(const FVector& HitTarget, TArray<FVector_NetQuantize>& HitTargets) const;
 
 	// Enable or disable custom depth
-	void EnableCustomDepth(bool bEnable);
+	void EnableCustomDepth(bool bEnable) const;
 
 	void SetWeaponState(EWeaponState State);
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }

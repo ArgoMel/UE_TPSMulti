@@ -411,7 +411,19 @@ void ABaseCharacter::EquipButtonPressed()
 	{
 		return;
 	}
-	ServerEquipButtonPressed();
+	if (Combat->CombatState==ECombatState::ECS_Unoccupied)
+	{
+		ServerEquipButtonPressed();
+	}
+	if (Combat->ShouldSwapWeapons()&&
+		!HasAuthority()&&
+		Combat->CombatState==ECombatState::ECS_Unoccupied&&
+		!OverlappingWeapon)
+	{
+		PlaySwapMontage();
+		Combat->CombatState=ECombatState::ECS_SwappingWeapons;
+		bFinishedSwapping=false;
+	}
 }
 
 void ABaseCharacter::CrouchButtonPressed()
@@ -430,7 +442,7 @@ void ABaseCharacter::CrouchButtonPressed()
 	}
 }
 
-void ABaseCharacter::ReloadButtonPressed()
+void ABaseCharacter::ReloadButtonPressed() const
 {
 	if ((Combat && Combat->bHoldingTheFlag)||
 		bDisableGameplay)
@@ -443,7 +455,7 @@ void ABaseCharacter::ReloadButtonPressed()
 	}
 }
 
-void ABaseCharacter::AimButtonPressed()
+void ABaseCharacter::AimButtonPressed() const
 {
 	if ((Combat && Combat->bHoldingTheFlag)||
 		bDisableGameplay)
@@ -456,7 +468,7 @@ void ABaseCharacter::AimButtonPressed()
 	}
 }
 
-void ABaseCharacter::AimButtonReleased()
+void ABaseCharacter::AimButtonReleased() const
 {
 	if ((Combat && Combat->bHoldingTheFlag) ||
 		bDisableGameplay)
@@ -551,7 +563,7 @@ void ABaseCharacter::SimProxiesTurn()
 	TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 }
 
-void ABaseCharacter::FireButton(bool bPressed)
+void ABaseCharacter::FireButton(bool bPressed) const
 {
 	if (!Combat ||
 		Combat->bHoldingTheFlag ||
@@ -578,7 +590,7 @@ void ABaseCharacter::PlayHitReactMontage() const
 	}
 }
 
-void ABaseCharacter::GrenadeButtonPressed()
+void ABaseCharacter::GrenadeButtonPressed() const
 {
 	if (Combat)
 	{
@@ -763,8 +775,13 @@ void ABaseCharacter::PlayThrowGrenadeMontage() const
 	}
 }
 
-void ABaseCharacter::PlaySwapMontage()
+void ABaseCharacter::PlaySwapMontage() const
 {
+	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
+	if (animInstance && SwapMontage)
+	{
+		animInstance->Montage_Play(SwapMontage);
+	}
 }
 
 void ABaseCharacter::Elim(bool bPlayerLeftGame)

@@ -25,7 +25,7 @@ void UBaseAnimInstance::NativeUpdateAnimation(float DeltaTime)
 		return;
 	}
 
-	FVector velocity = BaseCharacter->GetVelocity();
+	const FVector velocity = BaseCharacter->GetVelocity();
 	Speed = velocity.Size2D();
 	bIsInAir = BaseCharacter->GetCharacterMovement()->IsFalling();
 	bIsAccelerating = BaseCharacter->GetCharacterMovement()->GetCurrentAcceleration().Size()>0.f;
@@ -39,9 +39,9 @@ void UBaseAnimInstance::NativeUpdateAnimation(float DeltaTime)
 	bHoldingTheFlag = BaseCharacter->IsHoldingTheFlag();
 
 	// Offset Yaw for Strafing
-	FRotator aimRotation = BaseCharacter->GetBaseAimRotation();
-	FRotator movementRotation = UKismetMathLibrary::MakeRotFromX(BaseCharacter->GetVelocity());
-	FRotator deltaRot = UKismetMathLibrary::NormalizedDeltaRotator(movementRotation, aimRotation);
+	const FRotator aimRotation = BaseCharacter->GetBaseAimRotation();
+	const FRotator movementRotation = UKismetMathLibrary::MakeRotFromX(BaseCharacter->GetVelocity());
+	const FRotator deltaRot = UKismetMathLibrary::NormalizedDeltaRotator(movementRotation, aimRotation);
 	DeltaRotation = FMath::RInterpTo(DeltaRotation, deltaRot, DeltaTime, 6.f);
 	YawOffset = DeltaRotation.Yaw;
 
@@ -70,8 +70,8 @@ void UBaseAnimInstance::NativeUpdateAnimation(float DeltaTime)
 		if (BaseCharacter->IsLocallyControlled())
 		{
 			bLocallyControlled = true;
-			FTransform rightHandTransform = EquippedWeapon->GetWeaponMesh()->GetSocketTransform(BONE_RIGHTHAND, ERelativeTransformSpace::RTS_World);
-			FRotator lookAtRotation = UKismetMathLibrary::FindLookAtRotation(rightHandTransform.GetLocation(), rightHandTransform.GetLocation() + (rightHandTransform.GetLocation() - BaseCharacter->GetHitTarget()));
+			const FTransform rightHandTransform = EquippedWeapon->GetWeaponMesh()->GetSocketTransform(BONE_RIGHTHAND, ERelativeTransformSpace::RTS_World);
+			const FRotator lookAtRotation = UKismetMathLibrary::FindLookAtRotation(rightHandTransform.GetLocation(), rightHandTransform.GetLocation() + (rightHandTransform.GetLocation() - BaseCharacter->GetHitTarget()));
 			RightHandRotation = FMath::RInterpTo(RightHandRotation, lookAtRotation, DeltaTime, 30.f);
 		}
 	}
@@ -89,7 +89,7 @@ void UBaseAnimInstance::NativeUpdateAnimation(float DeltaTime)
 						!BaseCharacter->GetDisableGameplay();
 }
 
-void UBaseAnimInstance::AnimNotify_ReloadFinished()
+void UBaseAnimInstance::AnimNotify_ReloadFinished() const
 {
 	if(IsValid(BaseCharacter)&&
 		IsValid(BaseCharacter->GetCombat()))
@@ -98,7 +98,7 @@ void UBaseAnimInstance::AnimNotify_ReloadFinished()
 	}
 }
 
-void UBaseAnimInstance::AnimNotify_Shell()
+void UBaseAnimInstance::AnimNotify_Shell() const
 {
 	if (IsValid(BaseCharacter) &&
 		IsValid(BaseCharacter->GetCombat()))
@@ -107,7 +107,7 @@ void UBaseAnimInstance::AnimNotify_Shell()
 	}
 }
 
-void UBaseAnimInstance::AnimNotify_FinishGrenadeThrow()
+void UBaseAnimInstance::AnimNotify_FinishGrenadeThrow() const
 {
 	if (IsValid(BaseCharacter) &&
 		IsValid(BaseCharacter->GetCombat()))
@@ -116,11 +116,29 @@ void UBaseAnimInstance::AnimNotify_FinishGrenadeThrow()
 	}
 }
 
-void UBaseAnimInstance::AnimNotify_GrenadeLaunch()
+void UBaseAnimInstance::AnimNotify_GrenadeLaunch() const
 {
 	if (IsValid(BaseCharacter) &&
 		IsValid(BaseCharacter->GetCombat()))
 	{
 		BaseCharacter->GetCombat()->LaunchGrenade();
+	}
+}
+
+void UBaseAnimInstance::AnimNotify_SwapAttachWeapons() const
+{
+	if (IsValid(BaseCharacter) &&
+	IsValid(BaseCharacter->GetCombat()))
+	{
+		BaseCharacter->GetCombat()->FinishSwapAttachWeapons();
+	}
+}
+
+void UBaseAnimInstance::AnimNotify_SwapFinished() const
+{
+	if (IsValid(BaseCharacter) &&
+	IsValid(BaseCharacter->GetCombat()))
+	{
+		BaseCharacter->GetCombat()->FinishSwap();
 	}
 }

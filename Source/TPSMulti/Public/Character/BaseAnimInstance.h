@@ -32,7 +32,7 @@ private:
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	bool bWeaponEquipped;
 
-	AWeapon* EquippedWeapon;
+	TObjectPtr<AWeapon> EquippedWeapon;
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	bool bIsCrouched;
@@ -88,14 +88,20 @@ private:
 
 protected:
 	UFUNCTION()
-	void AnimNotify_ReloadFinished();
+	void AnimNotify_ReloadFinished() const;
 
 	UFUNCTION()
-	void AnimNotify_Shell();
+	void AnimNotify_Shell() const;
 
 	UFUNCTION()
-	void AnimNotify_FinishGrenadeThrow();
+	void AnimNotify_FinishGrenadeThrow() const;
 
 	UFUNCTION()
-	void AnimNotify_GrenadeLaunch();
+	void AnimNotify_GrenadeLaunch() const;
+
+	UFUNCTION()
+	void AnimNotify_SwapAttachWeapons() const;
+
+	UFUNCTION()
+	void AnimNotify_SwapFinished() const;
 };

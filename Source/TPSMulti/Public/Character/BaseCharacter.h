@@ -264,20 +264,20 @@ protected:
 	UFUNCTION(BlueprintCallable, Category = "Input")
 	void CrouchButtonPressed();
 	UFUNCTION(BlueprintCallable, Category = "Input")
-	void ReloadButtonPressed();
+	void ReloadButtonPressed() const;
 	UFUNCTION(BlueprintCallable, Category = "Input")
-	void AimButtonPressed();
+	void AimButtonPressed() const;
 	UFUNCTION(BlueprintCallable, Category = "Input")
-	void AimButtonReleased();
+	void AimButtonReleased() const;
 	void AimOffset(float DeltaTime);
 	void CalculateAO_Pitch();
 	void SimProxiesTurn();
 
 	UFUNCTION(BlueprintCallable, Category = "Input")
-	void FireButton(bool bPressed);
+	void FireButton(bool bPressed) const;
 	void PlayHitReactMontage() const;
 	UFUNCTION(BlueprintCallable, Category = "Input")
-	void GrenadeButtonPressed();
+	void GrenadeButtonPressed() const;
 	void DropOrDestroyWeapon(AWeapon* Weapon) const;
 	void DropOrDestroyWeapons() const;
 	void SetSpawnPoint();
@@ -295,7 +295,7 @@ public:
 	void PlayReloadMontage() const;
 	void PlayElimMontage() const;
 	void PlayThrowGrenadeMontage() const;
-	void PlaySwapMontage();
+	void PlaySwapMontage() const;
 
 	void Elim(bool bPlayerLeftGame);
 	UFUNCTION(NetMulticast, Reliable)

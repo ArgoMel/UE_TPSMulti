@@ -17,7 +17,7 @@ AWeapon::AWeapon()
 {
 	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
-	SetReplicateMovement(true);
+	AActor::SetReplicateMovement(true);
 	EnableCustomDepth(true);
 
 	WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
@@ -155,6 +155,7 @@ void AWeapon::OnWeaponStateSet()
 	case EWeaponState::EWS_Dropped:
 		OnDropped();
 		break;
+	default: ;
 	}
 }
 
@@ -172,6 +173,23 @@ void AWeapon::OnEquipped()
 		WeaponMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 	}
 	EnableCustomDepth(false);
+	
+	if(!OwnerCharacter)
+	{
+		OwnerCharacter = Cast<ABaseCharacter>(GetOwner());
+	}
+	if (OwnerCharacter)
+	{
+		if (!OwnerController)
+		{
+			OwnerController = Cast<ABasePlayerController>(OwnerCharacter->Controller);
+		}
+		if (OwnerController && HasAuthority() &&
+			!OwnerController->HighPingDelegate.IsBound())
+		{
+			OwnerController->HighPingDelegate.AddDynamic(this, &ThisClass::OnPingTooHigh);
+		}
+	}
 }
 
 void AWeapon::OnDropped()
@@ -189,6 +207,23 @@ void AWeapon::OnDropped()
 	WeaponMesh->SetCustomDepthStencilValue(CUSTOM_DEPTH_BLUE);
 	WeaponMesh->MarkRenderStateDirty();
 	EnableCustomDepth(true);
+
+	if(!OwnerCharacter)
+	{
+		OwnerCharacter = Cast<ABaseCharacter>(GetOwner());
+	}
+	if (OwnerCharacter)
+	{
+		if (!OwnerController)
+		{
+			OwnerController = Cast<ABasePlayerController>(OwnerCharacter->Controller);
+		}
+		if (OwnerController && HasAuthority() &&
+			OwnerController->HighPingDelegate.IsBound())
+		{
+			OwnerController->HighPingDelegate.RemoveDynamic(this, &ThisClass::OnPingTooHigh);
+		}
+	}
 }
 
 void AWeapon::OnEquippedSecondary()
@@ -239,6 +274,7 @@ void AWeapon::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* 
 	}
 }
 
+// ReSharper disable once CppMemberFunctionMayBeConst
 void AWeapon::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	ABaseCharacter* baseCharacter = Cast<ABaseCharacter>(OtherActor);
@@ -255,6 +291,7 @@ void AWeapon::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActo
 
 void AWeapon::OnPingTooHigh(bool bPingTooHigh)
 {
+	bUseServerSideRewind=!bPingTooHigh;
 }
 
 void AWeapon::SetHUDAmmo()
@@ -276,7 +313,7 @@ void AWeapon::SetHUDAmmo()
 	}
 }
 
-void AWeapon::ShowPickupWidget(bool bShowWidget)
+void AWeapon::ShowPickupWidget(bool bShowWidget) const
 {
 	if (PickupWidget)
 	{
@@ -322,7 +359,7 @@ void AWeapon::AddAmmo(int32 AmmoToAdd)
 	ClientAddAmmo(AmmoToAdd);
 }
 
-void AWeapon::TraceEndWithScatter(const FVector& HitTarget, TArray<FVector_NetQuantize>& HitTargets)
+void AWeapon::TraceEndWithScatter(const FVector& HitTarget, TArray<FVector_NetQuantize>& HitTargets) const
 {
 	const USkeletalMeshSocket* muzzleFlashSocket = GetWeaponMesh()->GetSocketByName(SOCKET_MUZZLEFLASH);
 	if (muzzleFlashSocket == nullptr)
@@ -365,7 +402,7 @@ void AWeapon::TraceEndWithScatter(const FVector& HitTarget, TArray<FVector_NetQu
 	//return FVector(traceStart + toEndLoc * TraceLength / toEndLoc.Size());
 }
 
-void AWeapon::EnableCustomDepth(bool bEnable)
+void AWeapon::EnableCustomDepth(bool bEnable) const
 {
 	if(WeaponMesh)
 	{
