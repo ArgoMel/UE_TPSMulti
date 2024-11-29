@@ -106,8 +106,8 @@ void AHitScanWeapon::Fire(const TArray<FVector_NetQuantize>& HitTargets)
 		{
 			if (damagePair.Key && instigatorController)
 			{
-				bool bCauseAuthDamage = !bUseServerSideRewind || ownerPawn->IsLocallyControlled();
-				if (HasAuthority() && bCauseAuthDamage)
+				if (HasAuthority() &&
+					(!bUseServerSideRewind || ownerPawn->IsLocallyControlled()))
 				{
 					UGameplayStatics::ApplyDamage(
 						damagePair.Key, // Character that was hit

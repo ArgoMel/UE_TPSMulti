@@ -1,11 +1,19 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "HUD/BaseHUD.h"
+
+#include "BFL/ArgoMathLibrary.h"
+#include "Blueprint/WidgetLayoutLibrary.h"
+#include "Components/HorizontalBox.h"
+#include "Components/OverlaySlot.h"
+#include "Components/TextBlock.h"
 #include "HUD/CharacterOverlayWidget.h"
 #include "HUD/AnnouncementWidget.h"
 #include "GameFramework/PlayerController.h"
 #include "HUD/ElimAnnouncement.h"
 #include "TPSMulti/TPSMulti.h"
+
+constexpr float MsgOffset=20.f;
 
 void ABaseHUD::BeginPlay()
 {
@@ -49,8 +57,13 @@ void ABaseHUD::DrawHUD()
 	}
 }
 
+// ReSharper disable once CppMemberFunctionMayBeConst
 void ABaseHUD::ElimAnnouncementTimerFinished(UElimAnnouncement* MsgToRemove)
 {
+	if (MsgToRemove)
+	{
+		MsgToRemove->RemoveFromParent();
+	}
 }
 
 void ABaseHUD::DrawCrosshair(UTexture2D* Texture, FVector2D ViewportCenter, FVector2D Spread, FLinearColor CrosshairColor)
@@ -91,7 +104,28 @@ void ABaseHUD::AddElimAnnouncement(FString Attacker, FString Victim)
 		{
 			elimAnnouncementWidget->SetElimAnnouncementText(Attacker,Victim);
 			elimAnnouncementWidget->AddToViewport(TopHud);
+
+			for (const auto& msg:ElimMessages)
+			{
+				if (msg&&
+					msg->AnnouncementBox)
+				{
+					UOverlaySlot* overlaySlot=UWidgetLayoutLibrary::SlotAsOverlaySlot(msg->AnnouncementBox);
+					if (overlaySlot)
+					{
+						FMargin padding=overlaySlot->GetPadding();
+						padding.Bottom+=UArgoMathLibrary::CeilingTen(msg->AnnouncementText->GetFont().Size+MsgOffset);
+						overlaySlot->SetPadding(padding);
+					}
+				}
+			}
+			
 			ElimMessages.Add(elimAnnouncementWidget);
+
+			FTimerHandle elimMsgTimer;
+			FTimerDelegate elimMsgDel;
+			elimMsgDel.BindUFunction(this,FName("ElimAnnouncementTimerFinished"),elimAnnouncementWidget);
+			GetWorldTimerManager().SetTimer(elimMsgTimer,elimMsgDel,ElimAnnouncementTime,false);
 		}
 	}
 }
