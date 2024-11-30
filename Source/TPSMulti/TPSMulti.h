@@ -44,6 +44,8 @@ constexpr float TraceLength = 80000.f;
 
 #define MAT_PARAM_DISSOVE FName(TEXT("Dissolve"))
 #define MAT_PARAM_DISSOVEGLOW FName(TEXT("DissolveGlow"))
+#define MAT_PARAM_DISSOVECOLOR FName(TEXT("DissolveColor"))
+#define MAT_PARAM_TEAMCOLOR FName(TEXT("TeamColor"))
 
 #define CUSTOM_DEPTH_PURPLE 250
 #define CUSTOM_DEPTH_BLUE 251

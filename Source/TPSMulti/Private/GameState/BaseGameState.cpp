@@ -34,10 +34,12 @@ void ABaseGameState::UpdateTopScore(ABasePlayerState* ScoringPlayer)
 
 void ABaseGameState::RedTeamScores()
 {
+	
 }
 
 void ABaseGameState::BlueTeamScores()
 {
+	
 }
 
 void ABaseGameState::OnRep_RedTeamScore()

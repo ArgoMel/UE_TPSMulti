@@ -318,6 +318,12 @@ void ABaseCharacter::HideCameraIfCharacterClose() const
 		{
 			Combat->EquippedWeapon->GetWeaponMesh()->bOwnerNoSee = true;
 		}
+		if(Combat&&
+		   Combat->SecondaryWeapon&&
+		   Combat->SecondaryWeapon->GetWeaponMesh())
+		{
+			Combat->SecondaryWeapon->GetWeaponMesh()->bOwnerNoSee = true;
+		}
 	}
 	else
 	{
@@ -327,6 +333,12 @@ void ABaseCharacter::HideCameraIfCharacterClose() const
 			Combat->EquippedWeapon->GetWeaponMesh())
 		{
 			Combat->EquippedWeapon->GetWeaponMesh()->bOwnerNoSee = false;
+		}
+		if(Combat&&
+   			Combat->SecondaryWeapon&&
+   			Combat->SecondaryWeapon->GetWeaponMesh())
+		{
+			Combat->SecondaryWeapon->GetWeaponMesh()->bOwnerNoSee = false;
 		}
 	}
 }
@@ -933,7 +945,7 @@ void ABaseCharacter::MulticastGainedTheLead_Implementation()
 	}
 	if (!CrownComponent)
 	{
-		CrownComponent=UNiagaraFunctionLibrary::SpawnSystemAttached(CrownSystem,GetCapsuleComponent(),FName(),GetActorLocation()+FVector(0.f,0.f,110.f),GetActorRotation(),EAttachLocation::KeepWorldPosition,false);
+		CrownComponent=UNiagaraFunctionLibrary::SpawnSystemAttached(CrownSystem,GetMesh(),BONE_HEAD,GetActorLocation()+FVector(0.f,0.f,110.f),GetActorRotation(),EAttachLocation::KeepWorldPosition,false);
 	}
 	if (CrownComponent)
 	{
