@@ -5,6 +5,8 @@
 #include "GameFramework/PlayerController.h"
 #include "BasePlayerController.generated.h"
 
+class ABaseGameState;
+class ABasePlayerState;
 class ABaseHUD;
 class ABaseGameMode;
 class UCharacterOverlayWidget;
@@ -136,8 +138,8 @@ protected:
 	UFUNCTION()
 	void OnRep_ShowTeamScores();
 
-	FString GetInfoText(const TArray<class ABlasterPlayerState*>& Players);
-	FString GetTeamsInfoText(class ABlasterGameState* BlasterGameState);
+	FString GetInfoText(const TArray<ABasePlayerState*>& Players) const;
+	FString GetTeamsInfoText(ABaseGameState* GameState) const;
 
 public:
 	void SetHUDHealth(float Health, float MaxHealth);

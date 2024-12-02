@@ -246,6 +246,10 @@ void ABaseCharacter::Destroyed()
 		ElimBotComponent->DestroyComponent();
 	}
 
+	if (!BaseGameMode)
+	{
+		BaseGameMode=GetWorld()->GetAuthGameMode<ABaseGameMode>();
+	}
 	if(Combat&&
 		Combat->EquippedWeapon
 		&&(BaseGameMode && BaseGameMode->GetMatchState() != MatchState::InProgress))
@@ -664,10 +668,15 @@ void ABaseCharacter::OnPlayerStateInitialized()
 
 void ABaseCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatorController, AActor* DamageCauser)
 {
-	if(bElimmed)
+	if (!BaseGameMode)
+	{
+		BaseGameMode=GetWorld()->GetAuthGameMode<ABaseGameMode>();
+	}
+	if(bElimmed||!BaseGameMode)
 	{
 		return;
 	}
+	Damage=BaseGameMode->CalculateDamage(InstigatorController,Controller,Damage);
 
 	if(Shield>0.f)
 	{
@@ -680,7 +689,10 @@ void ABaseCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const UDa
 
 	UpdateHUDHealth();
 	UpdateHUDShield();
-	PlayHitReactMontage();
+	if (Damage!=0.f)
+	{
+		PlayHitReactMontage();
+	}
 
 	if(Health==0.f)
 	{
@@ -903,11 +915,14 @@ void ABaseCharacter::UpdateHUDAmmo()
 	}
 }
 
-void ABaseCharacter::SpawnDefaultWeapon() const
+void ABaseCharacter::SpawnDefaultWeapon()
 {
-	const ABaseGameMode* baseGameMode = Cast<ABaseGameMode>(UGameplayStatics::GetGameMode(this));
+	if (!BaseGameMode)
+	{
+		BaseGameMode=GetWorld()->GetAuthGameMode<ABaseGameMode>();
+	}
 	UWorld* world = GetWorld();
-	if(baseGameMode&&
+	if(BaseGameMode&&
 		world&&
 		!bElimmed&&
 		DefaultWeaponClass)
@@ -963,6 +978,22 @@ void ABaseCharacter::MulticastLostTheLead_Implementation()
 
 void ABaseCharacter::SetTeamColor(ETeam Team)
 {
+	FLinearColor color=FLinearColor::White;
+	switch (Team)
+	{
+	case ETeam::ET_RedTeam:
+		color=FLinearColor::Red;
+		break;
+	case ETeam::ET_BlueTeam:
+		color=FLinearColor::Blue;
+		break;
+	default: ;
+	}
+	for (const auto& mat : DynamicDissolveMaterialInstances)
+	{
+		mat->SetVectorParameterValue(MAT_PARAM_DISSOVECOLOR, color);
+		mat->SetVectorParameterValue(MAT_PARAM_TEAMCOLOR, color);
+	}
 }
 
 void ABaseCharacter::SetOverlappingWeapon(AWeapon* Weapon)

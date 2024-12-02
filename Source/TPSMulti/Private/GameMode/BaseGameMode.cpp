@@ -32,7 +32,7 @@ void ABaseGameMode::OnMatchStateSet()
 		ABasePlayerController* basePlayer = Cast<ABasePlayerController>(*iter);
 		if(basePlayer)
 		{
-			basePlayer->OnMatchStateSet(MatchState);
+			basePlayer->OnMatchStateSet(MatchState,bTeamsMatch);
 		}
 	}
 }
@@ -163,5 +163,5 @@ void ABaseGameMode::PlayerLeftGame(ABasePlayerState* PlayerLeaving) const
 
 float ABaseGameMode::CalculateDamage(AController* Attacker, AController* Victim, float BaseDamage)
 {
-    return 0.0f;
+    return BaseDamage;
 }

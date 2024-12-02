@@ -8,6 +8,7 @@
 #include "PlayerState/BasePlayerState.h"
 #include "HUD/AnnouncementWidget.h"
 #include "Component/CombatComponent.h"
+#include "Components/HorizontalBox.h"
 #include "Weapon/Weapon.h"
 #include "GameState/BaseGameState.h"
 #include "Components/ProgressBar.h"
@@ -363,16 +364,77 @@ void ABasePlayerController::ClientElimAnnouncement_Implementation(APlayerState* 
 
 void ABasePlayerController::OnRep_ShowTeamScores()
 {
+	if (bShowTeamScores)
+	{
+		InitTeamScores();
+	}
+	else
+	{
+		HideTeamScores();
+	}
 }
 
-FString ABasePlayerController::GetInfoText(const TArray<class ABlasterPlayerState*>& Players)
+FString ABasePlayerController::GetInfoText(const TArray<ABasePlayerState*>& Players) const
 {
-	return FString();
+	const ABasePlayerState* basePlayerState = GetPlayerState<ABasePlayerState>();
+	if (!basePlayerState)
+	{
+		return FString::Printf(TEXT("Player state is null"));
+	}
+	FString infoTextStr;
+	if(Players.IsEmpty())
+	{
+		infoTextStr = Announcement::ThereIsNoWinner;
+	}
+	else if(Players.Num()==1&& 
+		Players[0]== basePlayerState)
+	{
+		infoTextStr = Announcement::YouAreTheWinner;
+	}
+	else if (Players.Num() == 1 &&
+		Players[0] != basePlayerState)
+	{
+		infoTextStr = FString::Printf(TEXT("%s \n%s"),*Announcement::Winner,*Players[0]->GetPlayerName());
+	}
+	else if (Players.Num() >1)
+	{
+		infoTextStr = Announcement::PlayersTiedForTheWin;
+		for(const auto& tiedPlayer: Players)
+		{
+			infoTextStr.Append(FString::Printf(TEXT("%s\n"), *tiedPlayer->GetPlayerName()));
+		}
+	}
+	return infoTextStr;
 }
 
-FString ABasePlayerController::GetTeamsInfoText(ABlasterGameState* BlasterGameState)
+FString ABasePlayerController::GetTeamsInfoText(ABaseGameState* GameState) const
 {
-	return FString();
+	if (!GameState)
+	{
+		return FString::Printf(TEXT("GameState is null"));
+	}
+	
+	FString infoTextStr;
+	const int32 redTeamScore=GameState->RedTeamScore;
+	const int32 blueTeamScore=GameState->BlueTeamScore;
+	
+	if(redTeamScore==0&&blueTeamScore==0)
+	{
+		infoTextStr = Announcement::ThereIsNoWinner;
+	}
+	else if(redTeamScore==blueTeamScore)
+	{
+		infoTextStr = FString::Printf(TEXT("%s\n%s\n%s\n"),*Announcement::TeamsTiedForTheWin,*Announcement::RedTeam,*Announcement::BlueTeam);
+	}
+	else if(redTeamScore>blueTeamScore)
+	{
+		infoTextStr = FString::Printf(TEXT("%s\n%s: %d\n%s: %d\n"),*Announcement::RedTeamWins,*Announcement::RedTeam,redTeamScore,*Announcement::BlueTeam,blueTeamScore);
+	}
+	else if(redTeamScore<blueTeamScore)
+	{
+		infoTextStr = FString::Printf(TEXT("%s\n%s: %d\n%s: %d\n"),*Announcement::BlueTeamWins,*Announcement::BlueTeam,blueTeamScore,*Announcement::RedTeam,redTeamScore);
+	}
+	return infoTextStr;
 }
 
 void ABasePlayerController::SetHUDHealth(float Health, float MaxHealth)
@@ -544,18 +606,49 @@ void ABasePlayerController::SetHUDGrenades(int32 Grenades)
 
 void ABasePlayerController::HideTeamScores()
 {
+	if (GetBaseHUD() &&
+	BaseHUD->CharacterOverlay &&
+	BaseHUD->CharacterOverlay->TeamScoreHB)
+	{
+		BaseHUD->CharacterOverlay->TeamScoreHB->SetVisibility(ESlateVisibility::Collapsed);
+	}
 }
 
 void ABasePlayerController::InitTeamScores()
 {
+	if (GetBaseHUD() &&
+	BaseHUD->CharacterOverlay &&
+	BaseHUD->CharacterOverlay->TeamScoreHB&&
+	BaseHUD->CharacterOverlay->RedTeamScore&&
+	BaseHUD->CharacterOverlay->BlueTeamScore)
+	{
+		const FString zero(TEXT("0"));
+		BaseHUD->CharacterOverlay->RedTeamScore->SetText(FText::FromString(zero));
+		BaseHUD->CharacterOverlay->BlueTeamScore->SetText(FText::FromString(zero));
+		BaseHUD->CharacterOverlay->TeamScoreHB->SetVisibility(ESlateVisibility::HitTestInvisible);
+	}
 }
 
 void ABasePlayerController::SetHUDRedTeamScore(int32 RedScore)
 {
+	if (GetBaseHUD() &&
+	BaseHUD->CharacterOverlay &&
+	BaseHUD->CharacterOverlay->RedTeamScore)
+	{
+		const FString scoreText=FString::Printf(TEXT("%d"),RedScore);
+		BaseHUD->CharacterOverlay->RedTeamScore->SetText(FText::FromString(scoreText));
+	}
 }
 
 void ABasePlayerController::SetHUDBlueTeamScore(int32 BlueScore)
 {
+	if (GetBaseHUD() &&
+	BaseHUD->CharacterOverlay &&
+	BaseHUD->CharacterOverlay->BlueTeamScore)
+	{
+		const FString scoreText=FString::Printf(TEXT("%d"),BlueScore);
+		BaseHUD->CharacterOverlay->BlueTeamScore->SetText(FText::FromString(scoreText));
+	}
 }
 
 float ABasePlayerController::GetServerTime()
@@ -578,6 +671,10 @@ void ABasePlayerController::OnMatchStateSet(FName State, bool bTeamsMatch)
 
 void ABasePlayerController::HandleMatchHasStarted(bool bTeamsMatch)
 {
+	if (HasAuthority())
+	{
+		bShowTeamScores=bTeamsMatch;
+	}
 	if (GetBaseHUD())
 	{
 		if(!BaseHUD->CharacterOverlay)
@@ -587,6 +684,17 @@ void ABasePlayerController::HandleMatchHasStarted(bool bTeamsMatch)
 		if (BaseHUD->Announcement)
 		{
 			BaseHUD->Announcement->SetVisibility(ESlateVisibility::Collapsed);
+		}
+		if (HasAuthority())
+		{
+			if (bTeamsMatch)
+			{
+				InitTeamScores();
+			}
+			else
+			{
+				HideTeamScores();
+			}
 		}
 	}
 }
@@ -601,37 +709,19 @@ void ABasePlayerController::HandleCooldown()
 			BaseHUD->Announcement->InfoText)
 		{
 			BaseHUD->Announcement->SetVisibility(ESlateVisibility::HitTestInvisible);
-			const FString announcementText(TEXT("New Match Starts In: "));
-			BaseHUD->Announcement->AnnouncementText->SetText(FText::FromString(announcementText));
+			BaseHUD->Announcement->AnnouncementText->SetText(FText::FromString(Announcement::NewMatchStartsIn));
 
-			const ABaseGameState* baseGameState = Cast<ABaseGameState>(UGameplayStatics::GetGameState(this));
-			const ABasePlayerState* basePlayerState = GetPlayerState<ABasePlayerState>();
-			if(baseGameState&&
-				basePlayerState)
+			ABaseGameState* baseGameState = Cast<ABaseGameState>(UGameplayStatics::GetGameState(this));
+			if(baseGameState)
 			{
-				TArray<ABasePlayerState*> topPlayers = baseGameState->TopScoringPlayers;
 				FString infoTextStr;
-				if(topPlayers.IsEmpty())
+				if (bShowTeamScores)
 				{
-					infoTextStr = TEXT("There is no winner.");
+					infoTextStr=GetTeamsInfoText(baseGameState);
 				}
-				else if(topPlayers.Num()==1&& 
-					topPlayers[0]== basePlayerState)
+				else
 				{
-					infoTextStr = TEXT("You are the winner!");
-				}
-				else if (topPlayers.Num() == 1 &&
-					topPlayers[0] != basePlayerState)
-				{
-					infoTextStr = FString::Printf(TEXT("Winner: \n%s"), *topPlayers[0]->GetPlayerName());
-				}
-				else if (topPlayers.Num() >1)
-				{
-					infoTextStr = TEXT("Players tied for the win:\n");
-					for(const auto& tiedPlayer: topPlayers)
-					{
-						infoTextStr.Append(FString::Printf(TEXT("%s\n"), *tiedPlayer->GetPlayerName()));
-					}
+					infoTextStr=GetInfoText(baseGameState->TopScoringPlayers);
 				}
 				BaseHUD->Announcement->InfoText->SetText(FText::FromString(infoTextStr));
 			}

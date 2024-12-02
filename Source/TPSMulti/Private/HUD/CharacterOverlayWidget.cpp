@@ -4,7 +4,7 @@
 #include "Components/SizeBox.h"
 #include "Animation/WidgetAnimation.h"
 
-void UCharacterOverlayWidget::SetAmmoUI(bool ShowUI)
+void UCharacterOverlayWidget::SetAmmoUI(bool ShowUI) const
 {
 	if(!AmmoSB)
 	{

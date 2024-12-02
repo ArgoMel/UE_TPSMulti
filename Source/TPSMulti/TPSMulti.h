@@ -66,6 +66,7 @@ namespace Announcement
 	const FString ThereIsNoWinner(TEXT("There is no winner."));
 	const FString YouAreTheWinner(TEXT("You are the winner!"));
 	const FString PlayersTiedForTheWin(TEXT("Players tied for the win:"));
+	const FString Winner(TEXT("Winner:"));
 	const FString TeamsTiedForTheWin(TEXT("Teams tied for the win:"));
 	const FString RedTeam(TEXT("Red team"));
 	const FString BlueTeam(TEXT("Blue team"));

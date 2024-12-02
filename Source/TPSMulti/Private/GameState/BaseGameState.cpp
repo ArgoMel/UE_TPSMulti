@@ -3,6 +3,7 @@
 #include "GameState/BaseGameState.h"
 #include "PlayerState/BasePlayerState.h"
 #include "Net/UnrealNetwork.h"
+#include "PlayerController/BasePlayerController.h"
 
 void ABaseGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -34,18 +35,38 @@ void ABaseGameState::UpdateTopScore(ABasePlayerState* ScoringPlayer)
 
 void ABaseGameState::RedTeamScores()
 {
-	
+	++RedTeamScore;
+	ABasePlayerController* basePlayer =Cast<ABasePlayerController>(GetWorld()->GetFirstPlayerController());
+	if (basePlayer)
+	{
+		basePlayer->SetHUDRedTeamScore(RedTeamScore);
+	}
 }
 
 void ABaseGameState::BlueTeamScores()
 {
-	
+	++BlueTeamScore;
+	ABasePlayerController* basePlayer =Cast<ABasePlayerController>(GetWorld()->GetFirstPlayerController());
+	if (basePlayer)
+	{
+		basePlayer->SetHUDBlueTeamScore(BlueTeamScore);
+	}
 }
 
-void ABaseGameState::OnRep_RedTeamScore()
+void ABaseGameState::OnRep_RedTeamScore() const
 {
+	ABasePlayerController* basePlayer =Cast<ABasePlayerController>(GetWorld()->GetFirstPlayerController());
+	if (basePlayer)
+	{
+		basePlayer->SetHUDRedTeamScore(RedTeamScore);
+	}
 }
 
-void ABaseGameState::OnRep_BlueTeamScore()
+void ABaseGameState::OnRep_BlueTeamScore() const
 {
+	ABasePlayerController* basePlayer =Cast<ABasePlayerController>(GetWorld()->GetFirstPlayerController());
+	if (basePlayer)
+	{
+		basePlayer->SetHUDBlueTeamScore(BlueTeamScore);
+	}
 }

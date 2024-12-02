@@ -309,7 +309,7 @@ public:
 	void UpdateHUDShield();
 	void UpdateHUDAmmo();
 
-	void SpawnDefaultWeapon() const;
+	void SpawnDefaultWeapon();
 
 	UFUNCTION(Server, Reliable)
 	void ServerLeaveGame();

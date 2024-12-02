@@ -5,6 +5,7 @@
 #include "Blueprint/UserWidget.h"
 #include "CharacterOverlayWidget.generated.h"
 
+class UHorizontalBox;
 class UProgressBar;
 class UTextBlock;
 class USizeBox;
@@ -37,7 +38,7 @@ public:
 	UTextBlock* BlueTeamScore;
 
 	UPROPERTY(meta = (BindWidget))
-	UTextBlock* ScoreSpacerText;
+	TObjectPtr<UHorizontalBox> TeamScoreHB;
 
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* DefeatsAmount;
@@ -70,6 +71,6 @@ public:
 	UWidgetAnimation* BlinkTextAnim;
 
 public:
-	void SetAmmoUI(bool ShowUI);
+	void SetAmmoUI(bool ShowUI) const;
 	void PlayBlinkTextAnim(bool PlayAnim);
 };

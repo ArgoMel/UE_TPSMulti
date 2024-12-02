@@ -38,8 +38,8 @@ public:
 	void BlueTeamScores();
 
 	UFUNCTION()
-	void OnRep_RedTeamScore();
+	void OnRep_RedTeamScore() const;
 
 	UFUNCTION()
-	void OnRep_BlueTeamScore();
+	void OnRep_BlueTeamScore() const;
 };
