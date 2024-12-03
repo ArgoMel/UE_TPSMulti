@@ -288,8 +288,14 @@ void UCombatComponent::UpdateHUDGrenades()
 	}
 }
 
-void UCombatComponent::OnRep_HoldingTheFlag()
+void UCombatComponent::OnRep_HoldingTheFlag() const
 {
+	if (bHoldingTheFlag&&
+		Character&&
+		Character->IsLocallyControlled())
+	{
+		Character->Crouch();
+	}
 }
 
 void UCombatComponent::SetAiming(bool bIsAiming)
@@ -705,8 +711,21 @@ void UCombatComponent::AttachActorToLeftHand(AActor* ActorToAttach) const
 	}
 }
 
-void UCombatComponent::AttachFlagToLeftHand(AWeapon* Flag)
+void UCombatComponent::AttachFlagToLeftHand(AWeapon* Flag) const
 {
+	if (!Character ||
+	!Character->GetMesh() ||
+	!Flag||
+	!EquippedWeapon)
+	{
+		return;
+	}
+	
+	const USkeletalMeshSocket* handSocket = Character->GetMesh()->GetSocketByName(SOCKET_FLAG);
+	if (handSocket)
+	{
+		handSocket->AttachActor(Flag, Character->GetMesh());
+	}
 }
 
 void UCombatComponent::AttachActorToBackpack(AActor* ActorToAttach) const

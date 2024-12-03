@@ -362,7 +362,7 @@ void ABasePlayerController::ClientElimAnnouncement_Implementation(APlayerState* 
 	}
 }
 
-void ABasePlayerController::OnRep_ShowTeamScores()
+void ABasePlayerController::OnRep_ShowTeamScore()
 {
 	if (bShowTeamScores)
 	{

@@ -23,6 +23,7 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "Components/BoxComponent.h"
 #include "NiagaraFunctionLibrary.h"
+#include "TeamPlayerStart.h"
 #include "GameState/BaseGameState.h"
 
 ABaseCharacter::ABaseCharacter()
@@ -217,7 +218,8 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 void ABaseCharacter::Jump()
 {
-	if (bDisableGameplay)
+	if (bDisableGameplay||
+		(Combat&&Combat->bHoldingTheFlag))
 	{
 		return;
 	}
@@ -428,7 +430,8 @@ void ABaseCharacter::LookAround(FVector2D Value)
 void ABaseCharacter::EquipButtonPressed()
 {
 	if (bDisableGameplay ||
-		!Combat)
+		!Combat||
+		Combat->bHoldingTheFlag)
 	{
 		return;
 	}
@@ -449,7 +452,8 @@ void ABaseCharacter::EquipButtonPressed()
 
 void ABaseCharacter::CrouchButtonPressed()
 {
-	if (bDisableGameplay)
+	if (bDisableGameplay ||
+		(Combat&&Combat->bHoldingTheFlag))
 	{
 		return;
 	}
@@ -613,10 +617,13 @@ void ABaseCharacter::PlayHitReactMontage() const
 
 void ABaseCharacter::GrenadeButtonPressed() const
 {
-	if (Combat)
+	if (bDisableGameplay ||
+	!Combat||
+	Combat->bHoldingTheFlag)
 	{
-		Combat->ThrowGrenade();
+		return;
 	}
+	Combat->ThrowGrenade();
 }
 
 void ABaseCharacter::DropOrDestroyWeapon(AWeapon* Weapon) const
@@ -656,6 +663,25 @@ void ABaseCharacter::DropOrDestroyWeapons() const
 
 void ABaseCharacter::SetSpawnPoint()
 {
+	if (HasAuthority()&&GetTeam()!=ETeam::ET_NoTeam)
+	{
+		TArray<AActor*> playerStarts;
+		UGameplayStatics::GetAllActorsOfClass(this,ATeamPlayerStart::StaticClass(),playerStarts);
+		TArray<ATeamPlayerStart*> teamPlayerStarts;
+		for (const auto& start : playerStarts)
+		{
+			ATeamPlayerStart* teamStart=Cast<ATeamPlayerStart>(start);
+			if (teamStart&&teamStart->Team==GetTeam())
+			{
+				teamPlayerStarts.Add(teamStart);
+			}
+		}
+		if (!teamPlayerStarts.IsEmpty())
+		{
+			const ATeamPlayerStart* chosenPlayerStart=teamPlayerStarts[FMath::RandRange(0,teamPlayerStarts.Num()-1)];
+			SetActorLocationAndRotation(chosenPlayerStart->GetActorLocation(),chosenPlayerStart->GetActorRotation());
+		}
+	}
 }
 
 void ABaseCharacter::OnPlayerStateInitialized()
@@ -734,6 +760,18 @@ void ABaseCharacter::PollInit()
 
 void ABaseCharacter::RotateInPlace(float DeltaTime)
 {
+	if(Combat&&Combat->bHoldingTheFlag)
+	{
+		bUseControllerRotationYaw = false;
+		GetCharacterMovement()->bOrientRotationToMovement = true;
+		TurningInPlace = ETurningInPlace::ETIP_NotTurning;
+		return;
+	}
+	if (Combat && Combat->EquippedWeapon)
+	{
+		GetCharacterMovement()->bOrientRotationToMovement = false;
+		bUseControllerRotationYaw = true;
+	}
 	if(bDisableGameplay)
 	{
 		bUseControllerRotationYaw = false;
@@ -1060,12 +1098,24 @@ bool ABaseCharacter::IsLocallyReloading() const
 
 bool ABaseCharacter::IsHoldingTheFlag() const
 {
-	return false;
+	if (!Combat)
+	{
+		return false;
+	}
+	return Combat->bHoldingTheFlag;
 }
 
 ETeam ABaseCharacter::GetTeam()
 {
-	return ETeam();
+	if (!BasePlayerState)
+	{
+		BasePlayerState = GetPlayerState<ABasePlayerState>();
+	}
+	if (!BasePlayerState)
+	{
+		return ETeam::ET_NoTeam;
+	}
+	return BasePlayerState->GetTeam();
 }
 
 void ABaseCharacter::SetHoldingTheFlag(bool bHolding)

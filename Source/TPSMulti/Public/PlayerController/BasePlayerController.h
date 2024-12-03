@@ -82,7 +82,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = Time)
 	float TimeSyncFrequency = 5.f;
 
-	UPROPERTY(ReplicatedUsing = OnRep_ShowTeamScores)
+	UPROPERTY(ReplicatedUsing = OnRep_ShowTeamScore)
 	bool bShowTeamScores = false;
 
 public:
@@ -136,7 +136,7 @@ protected:
 	void ClientElimAnnouncement_Implementation(APlayerState* Attacker, APlayerState* Victim);
 
 	UFUNCTION()
-	void OnRep_ShowTeamScores();
+	void OnRep_ShowTeamScore();
 
 	FString GetInfoText(const TArray<ABasePlayerState*>& Players) const;
 	FString GetTeamsInfoText(ABaseGameState* GameState) const;

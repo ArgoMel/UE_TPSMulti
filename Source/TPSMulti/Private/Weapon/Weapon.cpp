@@ -265,7 +265,7 @@ void AWeapon::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* 
 
 	if (baseCharacter)
 	{
-		if ((WeaponType == EWeaponType::EWT_Flag && baseCharacter->GetTeam() == Team)&&
+		if ((WeaponType == EWeaponType::EWT_Flag && baseCharacter->GetTeam() == Team)||
 			baseCharacter->IsHoldingTheFlag()) 
 		{
 			return;
@@ -280,7 +280,7 @@ void AWeapon::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActo
 	ABaseCharacter* baseCharacter = Cast<ABaseCharacter>(OtherActor);
 	if (baseCharacter)
 	{
-		if ((WeaponType == EWeaponType::EWT_Flag && baseCharacter->GetTeam() == Team)&&
+		if ((WeaponType == EWeaponType::EWT_Flag && baseCharacter->GetTeam() == Team)||
 			baseCharacter->IsHoldingTheFlag())
 		{
 			return;
@@ -345,7 +345,7 @@ void AWeapon::Fire(const TArray<FVector_NetQuantize>& HitTargets)
 void AWeapon::Dropped()
 {
 	SetWeaponState(EWeaponState::EWS_Dropped);
-	FDetachmentTransformRules detachRules(EDetachmentRule::KeepWorld,true);
+	const FDetachmentTransformRules detachRules(EDetachmentRule::KeepWorld,true);
 	WeaponMesh->DetachFromComponent(detachRules);
 	SetOwner(nullptr);
 	OwnerCharacter = nullptr;

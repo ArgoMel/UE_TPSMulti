@@ -16,6 +16,7 @@ constexpr float TraceLength = 80000.f;
 #define SOCKET_MUZZLEFLASH FName(TEXT("MuzzleFlash"))
 #define SOCKET_AMMOEJECT FName(TEXT("AmmoEject"))
 #define SOCKET_BACKPACK FName(TEXT("BackpackSocket"))
+#define SOCKET_FLAG FName(TEXT("FlagSocket"))
 
 #define BONE_HEAD FName(TEXT("head"))
 #define BONE_PELVIS FName(TEXT("pelvis"))
@@ -46,6 +47,7 @@ constexpr float TraceLength = 80000.f;
 #define MAT_PARAM_DISSOVEGLOW FName(TEXT("DissolveGlow"))
 #define MAT_PARAM_DISSOVECOLOR FName(TEXT("DissolveColor"))
 #define MAT_PARAM_TEAMCOLOR FName(TEXT("TeamColor"))
+#define MAT_PARAM_COLOR FName(TEXT("Color"))
 
 #define CUSTOM_DEPTH_PURPLE 250
 #define CUSTOM_DEPTH_BLUE 251

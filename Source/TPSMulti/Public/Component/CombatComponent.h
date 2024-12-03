@@ -137,7 +137,7 @@ private:
 	void UpdateHUDGrenades();
 
 	UFUNCTION()
-	void OnRep_HoldingTheFlag();
+	void OnRep_HoldingTheFlag() const;
 
 protected:
 	void SetAiming(bool bIsAiming);
@@ -185,7 +185,7 @@ protected:
 	void DropEquippedWeapon() const;
 	void AttachActorToRightHand(AActor* ActorToAttach) const;
 	void AttachActorToLeftHand(AActor* ActorToAttach) const;
-	void AttachFlagToLeftHand(AWeapon* Flag);
+	void AttachFlagToLeftHand(AWeapon* Flag) const;
 	void AttachActorToBackpack(AActor* ActorToAttach) const;
 	void UpdateCarriedAmmo();
 	void PlayEquipWeaponSound(AWeapon* WeaponToEquip) const;
