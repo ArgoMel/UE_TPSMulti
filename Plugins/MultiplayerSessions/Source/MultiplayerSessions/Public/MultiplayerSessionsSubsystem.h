@@ -21,7 +21,8 @@ public:
 	UMultiplayerSessionsSubsystem();
 
 private:
-	IOnlineSessionPtr SessionInterface;
+	// ReSharper disable once CppBoundToDelegateMethodIsNotMarkedAsUFunction
+	TSharedPtr<IOnlineSession, ESPMode::ThreadSafe> SessionInterface;
 	TSharedPtr<FOnlineSessionSettings> LastSessionSettings;
 	TSharedPtr<FOnlineSessionSearch> LastSessionSearch;
 
@@ -43,6 +44,9 @@ private:
 	FString LastMatchType;
 
 public:
+	int32 DesiredNumPublicConnections{};
+	FString DesiredMatchType{};
+	
 	// Our own custom delegates for the Menu class to bind callbacks to
 	FMultiplayerOnCreateSessionComplete MultiplayerOnCreateSessionComplete;
 	FMultiplayerOnFindSessionsComplete MultiplayerOnFindSessionsComplete;
@@ -65,7 +69,7 @@ public:
 	void FindSessions(int32 MaxSearchResults);
 	void JoinSession(const FOnlineSessionSearchResult& SessionResult);
 	void DestroySession();
-	void StartSession();
+	void StartSession() const;
 
 	bool IsValidSessionInterface();
 };

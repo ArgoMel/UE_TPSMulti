@@ -1,10 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+// ReSharper disable CppMemberFunctionMayBeConst
 #include "Menu.h"
 #include "Components/Button.h"
 #include "MultiplayerSessionsSubsystem.h"
 #include "OnlineSessionSettings.h"
 #include "OnlineSubsystem.h"
+#include "OnlineSubsystemUtils.h"
 
 void UMenu::NativeOnInitialized()
 {
@@ -46,13 +48,13 @@ void UMenu::JoinButtonClicked()
 void UMenu::MenuTearDown()
 {
 	RemoveFromParent();
-	UWorld* world = GetWorld();
+	const UWorld* world = GetWorld();
 	if (world)
 	{
 		APlayerController* playerController = world->GetFirstPlayerController();
 		if (playerController)
 		{
-			FInputModeGameOnly inputModeData;
+			const FInputModeGameOnly inputModeData;
 			playerController->SetInputMode(inputModeData);
 			playerController->SetShowMouseCursor(false);
 		}
@@ -109,10 +111,10 @@ void UMenu::OnFindSessions(const TArray<FOnlineSessionSearchResult>& SessionResu
 
 void UMenu::OnJoinSession(EOnJoinSessionCompleteResult::Type Result)
 {
-	IOnlineSubsystem* subsystem = IOnlineSubsystem::Get();
+	const IOnlineSubsystem* subsystem = Online::GetSubsystem(GetWorld());
 	if (subsystem)
 	{
-		IOnlineSessionPtr sessionInterface = subsystem->GetSessionInterface();
+		const IOnlineSessionPtr sessionInterface = subsystem->GetSessionInterface();
 		if (sessionInterface.IsValid())
 		{
 			FString address;
@@ -144,7 +146,7 @@ void UMenu::MenuSetup(int32 NumberOfPublicConnections, FString TypeOfMatch, FStr
 	SetVisibility(ESlateVisibility::Visible);
 	SetIsFocusable(true);
 
-	UWorld* world = GetWorld();
+	const UWorld* world = GetWorld();
 	if (world)
 	{
 		APlayerController* playerController = world->GetFirstPlayerController();
@@ -158,7 +160,7 @@ void UMenu::MenuSetup(int32 NumberOfPublicConnections, FString TypeOfMatch, FStr
 		}
 	}
 
-	UGameInstance* gameInstance = GetGameInstance();
+	const UGameInstance* gameInstance = GetGameInstance();
 	if (gameInstance)
 	{
 		MultiplayerSessionsSubsystem = gameInstance->GetSubsystem<UMultiplayerSessionsSubsystem>();

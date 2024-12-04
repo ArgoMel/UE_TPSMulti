@@ -6,6 +6,9 @@
 #include "TeamGameMode.h"
 #include "CaptureTheFlagGameMode.generated.h"
 
+class AFlagZone;
+class AFlagWeapon;
+
 UCLASS()
 class TPSMULTI_API ACaptureTheFlagGameMode : public ATeamGameMode
 {
@@ -14,5 +17,5 @@ public:
 	virtual void PlayerEliminated(ABaseCharacter* ElimmedCharacter, ABasePlayerController* VictimController, ABasePlayerController* AttackerController) override;
 
 public:
-	//void FlagCaptured(AFlag* Flag, AFlagZone* Zone);
+	void FlagCaptured(AFlagWeapon* Flag, AFlagZone* Zone) const;
 };

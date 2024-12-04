@@ -8,35 +8,35 @@ void ALobbyGameMode::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
 
-	int32 numberOfPlayers = GameState.Get()->PlayerArray.Num();
+	const int32 numberOfPlayers = GameState.Get()->PlayerArray.Num();
 
-	UGameInstance* gameInstance = GetGameInstance();
+	const UGameInstance* gameInstance = GetGameInstance();
 	if (gameInstance)
 	{
-		UMultiplayerSessionsSubsystem* subsystem = gameInstance->GetSubsystem<UMultiplayerSessionsSubsystem>();
+		const UMultiplayerSessionsSubsystem* subsystem = gameInstance->GetSubsystem<UMultiplayerSessionsSubsystem>();
 		check(subsystem);
 
-		//if (numberOfPlayers == subsystem->DesiredNumPublicConnections)
-		//{
-		//	UWorld* world = GetWorld();
-		//	if (world)
-		//	{
-		//		bUseSeamlessTravel = true;
+		if (numberOfPlayers == subsystem->DesiredNumPublicConnections)
+		{
+			UWorld* world = GetWorld();
+			if (world)
+			{
+				bUseSeamlessTravel = true;
 
-		//		FString matchType = subsystem->DesiredMatchType;
-		//		if (matchType == "FreeForAll")
-		//		{
-		//			world->ServerTravel(FString("/Game/Maps/BlasterMap?listen"));
-		//		}
-		//		else if (matchType == "Teams")
-		//		{
-		//			world->ServerTravel(FString("/Game/Maps/Teams?listen"));
-		//		}
-		//		else if (matchType == "CaptureTheFlag")
-		//		{
-		//			world->ServerTravel(FString("/Game/Maps/CaptureTheFlag?listen"));
-		//		}
-		//	}
-		//}
+				const FString matchType = subsystem->DesiredMatchType;
+				if (matchType == "FreeForAll")
+				{
+					world->ServerTravel(FString("/Game/Maps/BlasterMap?listen"));
+				}
+				else if (matchType == "Teams")
+				{
+					world->ServerTravel(FString("/Game/Maps/Teams?listen"));
+				}
+				else if (matchType == "CaptureTheFlag")
+				{
+					world->ServerTravel(FString("/Game/Maps/CaptureTheFlag?listen"));
+				}
+			}
+		}
 	}
 }

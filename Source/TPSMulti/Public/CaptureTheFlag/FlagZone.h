@@ -2,9 +2,11 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
+#include "TPSMulti/TPSMulti.h"
 #include "GameFramework/Actor.h"
 #include "FlagZone.generated.h"
+
+class USphereComponent;
 
 UCLASS()
 class TPSMULTI_API AFlagZone : public AActor
@@ -15,4 +17,16 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
+
+private:
+	UPROPERTY(EditAnywhere)
+	USphereComponent* ZoneSphere;
+	
+public:	
+	UPROPERTY(EditAnywhere)
+	ETeam Team;
+	
+protected:
+	UFUNCTION()
+	virtual void OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 };

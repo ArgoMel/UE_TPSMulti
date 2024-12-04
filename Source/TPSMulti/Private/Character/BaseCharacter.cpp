@@ -23,7 +23,7 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "Components/BoxComponent.h"
 #include "NiagaraFunctionLibrary.h"
-#include "TeamPlayerStart.h"
+#include "PlayerStart/TeamPlayerStart.h"
 #include "GameState/BaseGameState.h"
 
 ABaseCharacter::ABaseCharacter()
@@ -1118,8 +1118,13 @@ ETeam ABaseCharacter::GetTeam()
 	return BasePlayerState->GetTeam();
 }
 
-void ABaseCharacter::SetHoldingTheFlag(bool bHolding)
+void ABaseCharacter::SetHoldingTheFlag(bool bHolding) const
 {
+	if (!Combat)
+	{
+		return;
+	}
+	Combat->bHoldingTheFlag=bHolding;
 }
 
 ABasePlayerController* ABaseCharacter::GetBasePlayerController()
