@@ -37,10 +37,6 @@
 		{
 			"Name": "VRM4U",
 			"Enabled": true
-		},
-		{
-			"Name": "CyanSdk",
-			"Enabled": true
 		}
 	]
 }
