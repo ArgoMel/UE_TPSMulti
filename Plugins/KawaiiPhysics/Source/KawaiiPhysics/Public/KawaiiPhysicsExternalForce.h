@@ -1,5 +1,8 @@
-﻿#pragma once
+﻿// KawaiiPhysics : Copyright (c) 2019-2024 pafuhana1213, MIT License
+
+#pragma once
 #include "AnimNode_KawaiiPhysics.h"
+#include "SceneManagement.h"
 #include "Curves/CurveVector.h"
 #include "KawaiiPhysicsExternalForce.generated.h"
 
@@ -79,7 +82,7 @@ struct KAWAIIPHYSICS_API FKawaiiPhysics_ExternalForce
 
 	/** Whether the external force is applied only once */
 	UPROPERTY()
-	bool bIsOneShot;
+	bool bIsOneShot = false;
 
 #if ENABLE_ANIM_DEBUG
 	/** Length of the debug arrow */
@@ -435,7 +438,7 @@ private:
 	 * This is used to access the world context for the external force.
 	 */
 	UPROPERTY()
-	UWorld* World;
+	TObjectPtr<UWorld> World;
 
 public:
 	virtual void PreApply(FAnimNode_KawaiiPhysics& Node, const USkeletalMeshComponent* SkelComp) override;

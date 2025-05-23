@@ -9,6 +9,7 @@
 #include "UObject/UObjectIterator.h"
 #include "UObject/Package.h"
 
+#include "Async/ParallelFor.h"
 #include "Engine/Texture2D.h"
 #include "TextureResource.h"
 #include "Modules/ModuleManager.h"
@@ -423,7 +424,7 @@ bool DecompressTGA(
 }
 
 
-UTexture2D* VRMLoaderUtil::CreateTextureFromImage(FString name, UPackage* package, const void* vBuffer, const size_t Length, bool bGenerateMips, bool bRuntimeMode) {
+UTexture2D* VRMLoaderUtil::CreateTextureFromImage(FString name, UPackage* package, const void* vBuffer, const size_t Length, bool bGenerateMips, bool bNormal, bool bGreenFlip) {
 
 	const char* Buffer = (const char*)vBuffer;
 	VRMUtil::FImportImage img;
@@ -437,9 +438,25 @@ UTexture2D* VRMLoaderUtil::CreateTextureFromImage(FString name, UPackage* packag
 	}
 	{
 		uint8* MipData = (uint8*)GetPlatformData(tex)->Mips[0].BulkData.Lock(LOCK_READ_WRITE);
-		if (img.RawData.GetData()) {
+		if (bGreenFlip) {
+			//for (int32 y = 0; y < img.SizeY; y++)
+			ParallelFor(img.SizeY, [&](int y) {
+				const uint8* c = img.RawData.GetData() + (y * img.SizeX * sizeof(FColor));
+				uint8* DestPtr = MipData + (y * img.SizeX * sizeof(FColor));
+				for (int32 x = 0; x < img.SizeX; x++)
+				{
+					DestPtr[0] = c[0];
+					DestPtr[1] = 255 - c[1];
+					DestPtr[2] = c[2];
+					DestPtr[3] = c[3];
+
+					DestPtr += 4;
+					c += 4;
+				}
+				});
+		}else{
 			FMemory::Memcpy(MipData, img.RawData.GetData(), img.RawData.Num());
-		} else {
+		}
 			/*
 			for (int32 y = 0; y < Height; y++)
 			{
@@ -455,21 +472,23 @@ UTexture2D* VRMLoaderUtil::CreateTextureFromImage(FString name, UPackage* packag
 				}
 			}
 			*/
-		}
 		GetPlatformData(tex)->Mips[0].BulkData.Unlock();
 	}
 
 	// Set options
 	tex->SRGB = true;// bUseSRGB;
 	tex->CompressionSettings = TC_Default;
-	//if (NormalBoolTable[i]) {
-	//	tex->CompressionSettings = TC_Normalmap;
-	//	tex->SRGB = 0;
-	//}
+	if (bNormal) {
+		tex->CompressionSettings = TC_Normalmap;
+		tex->SRGB = 0;
+#if WITH_EDITORONLY_DATA
+		tex->CompressionNoAlpha = true;
+#endif
+	}
 	tex->AddressX = TA_Wrap;
 	tex->AddressY = TA_Wrap;
 
-	if (bRuntimeMode) {
+	if (VRMConverter::IsImportMode() == false) {
 		// skip updateresource. call manuary
 		//tex->UpdateResource();
 		return tex;

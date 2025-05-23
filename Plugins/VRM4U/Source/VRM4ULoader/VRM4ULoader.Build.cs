@@ -44,6 +44,7 @@ public class VRM4ULoader : ModuleRules
 				"AnimGraphRuntime",
 				"Projects",
 				"VRM4U",
+                "MeshDescription",
 			});
 		PrivateDependencyModuleNames.Add("TimeManagement");
 

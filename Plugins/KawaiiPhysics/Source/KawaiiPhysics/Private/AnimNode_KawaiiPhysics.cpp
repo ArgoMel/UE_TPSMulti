@@ -1,4 +1,6 @@
-﻿#include "AnimNode_KawaiiPhysics.h"
+﻿// KawaiiPhysics : Copyright (c) 2019-2024 pafuhana1213, MIT License
+
+#include "AnimNode_KawaiiPhysics.h"
 
 #include "AnimationRuntime.h"
 #include "KawaiiPhysicsBoneConstraintsDataAsset.h"
@@ -10,7 +12,10 @@
 #include "Runtime/Launch/Resources/Version.h"
 #include "SceneInterface.h"
 #include "PhysicsEngine/PhysicsAsset.h"
+
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 5
 #include "PhysicsEngine/SkeletalBodySetup.h"
+#endif
 
 #if WITH_EDITOR
 #include "UnrealEdGlobals.h"
@@ -494,7 +499,7 @@ void FAnimNode_KawaiiPhysics::ApplyPhysicsAsset(const FBoneContainer& RequiredBo
 
 	if (PhysicsAssetForLimits)
 	{
-		for (auto& BodySetup : PhysicsAssetForLimits->SkeletalBodySetups)
+		for (const auto& BodySetup : PhysicsAssetForLimits->SkeletalBodySetups)
 		{
 			FBoneReference DrivingBone = BodySetup->BoneName;
 			DrivingBone.Initialize(RequiredBones);

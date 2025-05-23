@@ -8,6 +8,19 @@
 
 #include "VrmAssetListObject.h"
 #include "VrmMetaObject.h"
+#if	UE_VERSION_OLDER_THAN(5,1,0)
+#else
+#include "VrmAssetUserData.h"
+#endif
+
+#if	UE_VERSION_OLDER_THAN(4,26,0)
+#include "AssetRegistryModule.h"
+#include "ARFilter.h"
+#else
+#include "AssetRegistry/AssetRegistryModule.h"
+#include "AssetRegistry/ARFilter.h"
+#include "AssetRegistry/AssetData.h"
+#endif
 
 
 void FImportOptionData::init() {
@@ -528,40 +541,7 @@ const TArray<FName> VRMUtil::ue4_humanoid_bone_list_name = {
 	"Custom_5",
 };
 
-#if	UE_VERSION_OLDER_THAN(5,0,0)
-
-#elif UE_VERSION_OLDER_THAN(5,2,0)
-
-#include "IKRigDefinition.h"
-#include "IKRigSolver.h"
-#if WITH_EDITOR
-#include "RigEditor/IKRigController.h"
-#include "RetargetEditor/IKRetargeterController.h"
-#include "Retargeter/IKRetargeter.h"
-#include "Solvers/IKRig_PBIKSolver.h"
-#endif
-
-#elif UE_VERSION_OLDER_THAN(5,3,0)
-
-#include "IKRigDefinition.h"
-#include "IKRigSolver.h"
-#if WITH_EDITOR
-#include "RigEditor/IKRigController.h"
-#include "RetargetEditor/IKRetargeterController.h"
-#include "Retargeter/IKRetargeter.h"
-#endif
-
-#else
-
-#include "Rig/IKRigDefinition.h"
-#include "Rig/Solvers/IKRigSolver.h"
-#if WITH_EDITOR
-#include "RigEditor/IKRigController.h"
-#include "RetargetEditor/IKRetargeterController.h"
-#include "Retargeter/IKRetargeter.h"
-#endif
-
-#endif
+#include "VrmRigHeader.h"
 
 
 #if	UE_VERSION_OLDER_THAN(5,0,0)
@@ -867,43 +847,171 @@ int32 VRMUtil::GetDirectChildBones(FReferenceSkeleton& refs, int32 ParentBoneInd
 }
 
 
-UVrmAssetListObject* VRMUtil::GetAssetListObject(const UObject *obj) {
-	
+UVrmAssetListObject* VRMUtil::GetAssetListObjectAny(const UObject* obj) {
+	if (obj == nullptr) return nullptr;
 	if (Cast<USkeletalMesh>(obj)) {
-		const FString full = obj->GetPathName();
-		const FString baseName = obj->GetName();
-		const FString path = FPaths::GetPath(full);
+		auto* p = GetAssetListObject(Cast<USkeletalMesh>(obj));
+		if (p) return p;
+	}
+	if (Cast<USkeletalMeshComponent>(obj)) {
+		auto* p = GetAssetListObject(VRMGetSkeletalMeshAsset(Cast<USkeletalMeshComponent>(obj)));
+		if (p) return p;
+	}
 
-		FString core = baseName;
-		core.RemoveFromStart(TEXT("SK_"));
+	const FString full = obj->GetPathName();
+	const FString baseName = obj->GetName();
+	const FString path = FPaths::GetPath(full);
 
-		{
-			FString targetBase = FString(TEXT("VA_")) + core + FString(TEXT("_vrmassetlist"));
-			FString target = path + FString(TEXT("/")) + targetBase + FString(TEXT(".")) + targetBase;
-			if (IsInGameThread()) {
-				FSoftObjectPath r = target;
-				UObject* u = r.ResolveObject();
-				if (u == nullptr) u = r.TryLoad();
-				if (u) {
-					return Cast<UVrmAssetListObject>(u);
-				}
+	FString core = baseName;
+	{
+		int index = 0;
+		if (core.FindChar('_', index)) {
+			core.RemoveAt(0, index);
+		}
+	}
+
+	{
+		FString targetBase = FString(TEXT("VA_")) + core + FString(TEXT("_vrmassetlist"));
+		FString target = path + FString(TEXT("/")) + targetBase + FString(TEXT(".")) + targetBase;
+		if (IsInGameThread()) {
+			FSoftObjectPath r = target;
+			UObject* u = r.ResolveObject();
+			if (u == nullptr) u = r.TryLoad();
+			if (u) {
+				return Cast<UVrmAssetListObject>(u);
 			}
 		}
-		{
-			FString targetBase = FString(TEXT("")) + core + FString(TEXT("_vrmassetlist"));
-			FString target = path + FString(TEXT("/")) + targetBase + FString(TEXT(".")) + targetBase;
-			if (IsInGameThread()) {
-				FSoftObjectPath r = target;
-				UObject* u = r.ResolveObject();
-				if (u == nullptr) u = r.TryLoad();
-				if (u) {
-					return Cast<UVrmAssetListObject>(u);
-				}
+	}
+	{
+		FString targetBase = FString(TEXT("")) + core + FString(TEXT("_vrmassetlist"));
+		FString target = path + FString(TEXT("/")) + targetBase + FString(TEXT(".")) + targetBase;
+		if (IsInGameThread()) {
+			FSoftObjectPath r = target;
+			UObject* u = r.ResolveObject();
+			if (u == nullptr) u = r.TryLoad();
+			if (u) {
+				return Cast<UVrmAssetListObject>(u);
 			}
 		}
 	}
 
+	return nullptr;
+}
+
+UVrmAssetListObject* VRMUtil::GetAssetListObject(const USkeletalMesh *sk) {
+
+	if (sk == nullptr) return nullptr;
+
+	{
+#if	UE_VERSION_OLDER_THAN(5,1,0)
+#else
+		auto* dataArray = sk->GetAssetUserDataArray();
+		if (dataArray) {
+			for (auto data : *dataArray) {
+				auto* d = Cast<UVrmAssetUserData>(data);
+				if (d == nullptr) continue;
+				if (d->VrmAssetListObject) {
+					return d->VrmAssetListObject;
+				}
+			}
+		}
+#endif
+	}
+
+	const FString full = sk->GetPathName();
+	const FString baseName = sk->GetName();
+	const FString path = FPaths::GetPath(full);
+
+	FString core = baseName;
+	core.RemoveFromStart(TEXT("SK_"));
+
+	{
+		FString targetBase = FString(TEXT("VA_")) + core + FString(TEXT("_vrmassetlist"));
+		FString target = path + FString(TEXT("/")) + targetBase + FString(TEXT(".")) + targetBase;
+		if (IsInGameThread()) {
+			FSoftObjectPath r = target;
+			UObject* u = r.ResolveObject();
+			if (u == nullptr) u = r.TryLoad();
+			if (u) {
+				return Cast<UVrmAssetListObject>(u);
+			}
+		}
+	}
+	{
+		FString targetBase = FString(TEXT("")) + core + FString(TEXT("_vrmassetlist"));
+		FString target = path + FString(TEXT("/")) + targetBase + FString(TEXT(".")) + targetBase;
+		if (IsInGameThread()) {
+			FSoftObjectPath r = target;
+			UObject* u = r.ResolveObject();
+			if (u == nullptr) u = r.TryLoad();
+			if (u) {
+				return Cast<UVrmAssetListObject>(u);
+			}
+		}
+	}
 
 	return nullptr;
 }
 
+
+void VRMUtil::CloseEditorWindowByFolderPath(const UObject* Asset){
+#if WITH_EDITOR
+#if	UE_VERSION_OLDER_THAN(5,0,0)
+#else
+
+	if (IsValid(Asset) == false) {
+		return;
+	}
+	if (GEditor == nullptr) return;
+
+	FString AssetPath = Asset->GetPathName();
+	FString FolderPath = FPackageName::GetLongPackagePath(AssetPath);
+
+	auto* AssetEditorSS = GEditor->GetEditorSubsystem<UAssetEditorSubsystem>();
+	if (AssetEditorSS == nullptr) return;
+
+	TArray<UObject*> EditedAssets = AssetEditorSS->GetAllEditedAssets();
+	for (UObject* EditedAsset : EditedAssets) {
+
+		FString EditedAssetPath = EditedAsset->GetPathName();
+		FString EditedFolderPath = FPackageName::GetLongPackagePath(AssetPath);
+
+		if (EditedFolderPath == FolderPath) {
+
+			if (IAssetEditorInstance* Editor = AssetEditorSS->FindEditorForAsset(EditedAsset, false)) {
+#if	UE_VERSION_OLDER_THAN(5,3,0)
+				Editor->CloseWindow();
+#else
+				Editor->CloseWindow(EAssetEditorCloseReason::AssetUnloadingOrInvalid);
+#endif
+			}
+		}
+	}
+#endif
+#endif
+}
+
+int VRMUtil::GetChildBone(const USkeleton* skeleton, const int32 ParentBoneIndex, bool recursive, TArray<int32>& Children) {
+
+	Children.Reset();
+	auto& r = skeleton->GetReferenceSkeleton();
+
+	const int32 NumBones = r.GetRawBoneNum();
+	for (int32 ChildIndex = ParentBoneIndex + 1; ChildIndex < NumBones; ChildIndex++)
+	{
+		if (ParentBoneIndex == r.GetParentIndex(ChildIndex))
+		{
+			Children.Add(ChildIndex);
+		}
+	}
+	if (recursive) {
+		TArray<int32> c2;
+		for (auto i : Children) {
+			TArray<int32> c;
+			GetChildBone(skeleton, i, true, c);
+			c2.Append(c);
+		}
+		Children.Append(c2);
+	}
+	return Children.Num();
+}

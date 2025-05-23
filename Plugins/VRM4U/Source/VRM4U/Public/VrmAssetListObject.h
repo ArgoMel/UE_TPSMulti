@@ -185,6 +185,9 @@ public:
 	TMap<FString, FTransform> Pose_bind;
 	TMap<FString, FTransform> Pose_tpose;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Out")
+	FTransform model_root_transform;
+
 	//TArray<FTransform> poseGlobal_bindpose;	// bone
 	//TArray<FTransform> poseGlobal_tpose;	// node
 
@@ -252,8 +255,7 @@ public:
 
 #if WITH_EDITOR
 
-
-	virtual void GetAssetRegistryTags(FAssetRegistryTagsContext Context) const;
+	virtual void GetAssetRegistryTags(FAssetRegistryTagsContext Context) const override;
 	// Import data for this 
 	void WaitUntilAsyncPropertyReleased() const;
 

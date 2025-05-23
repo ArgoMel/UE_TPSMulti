@@ -1,4 +1,4 @@
-// VRM4U Copyright (c) 2021-2024 Haruyoshi Yamamoto. This software is released under the MIT License.
+﻿// VRM4U Copyright (c) 2021-2024 Haruyoshi Yamamoto. This software is released under the MIT License.
 
 #include "VrmConvertMorphTarget.h"
 #include "VrmConvert.h"
@@ -198,6 +198,12 @@ static bool readMorph2(TArray<FMorphTargetDelta> &MorphDeltas, aiString targetNa
 							aiV[1] * 100.f
 						);
 					}
+
+					// apply original root bone rotation
+					FVector tmp;
+					tmp.Set(v.PositionDelta.X, v.PositionDelta.Y, v.PositionDelta.Z);
+					tmp = assetList->model_root_transform.TransformVector(tmp);
+					v.PositionDelta.Set(tmp.X, tmp.Y, tmp.Z);
 				}
 
 				v.PositionDelta *= VRMConverter::Options::Get().GetModelScale();
@@ -362,19 +368,30 @@ bool VRMConverter::ConvertMorphTarget(UVrmAssetListObject *vrmAssetList) {
 	VRMSetUseLegacyMeshDerivedDataKey(sk, true);
 
 	FSkeletalMeshImportData RawMesh;
-	PRAGMA_DISABLE_DEPRECATION_WARNINGS
-	sk->LoadLODImportedData(0, RawMesh);
-	//sk->GetMeshDescription(0);
+	//sk->LoadLODImportedData(0, RawMesh);
+	if (ensure(sk->IsValidLODIndex(0)))
+	{
+		if (const FMeshDescription* MeshDescription = sk->GetMeshDescription(0))
+		{
+			if (!MeshDescription->IsEmpty())
+			{
+				RawMesh = FSkeletalMeshImportData::CreateFromMeshDescription(*MeshDescription);
+			}
+		}
+		RawMesh.MorphTargetNames = MorphNameList;
 
-	RawMesh.MorphTargetNames = MorphNameList;
-
-	// to avoid no morph target
-	// on EditorRestart
-	sk->SaveLODImportedData(0, RawMesh);
-	//sk->CommitMeshDescription(0);
+		// to avoid no morph target
+		// on EditorRestart
+		//sk->SaveLODImportedData(0, RawMesh);
+		FMeshDescription MeshDescription;
+		if (RawMesh.GetMeshDescription(nullptr, &sk->GetLODInfo(0)->BuildSettings, MeshDescription))
+		{
+			sk->CreateMeshDescription(0, MoveTemp(MeshDescription));
+			sk->CommitMeshDescription(0);
+		}
+	}
 
 	sk->SetLODImportedDataVersions(0, ESkeletalMeshGeoImportVersions::Before_Versionning, ESkeletalMeshSkinningImportVersions::Before_Versionning);
-	PRAGMA_ENABLE_DEPRECATION_WARNINGS
 
 #endif
 #endif // editor
