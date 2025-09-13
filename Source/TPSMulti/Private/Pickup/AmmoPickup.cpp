@@ -8,7 +8,7 @@ void AAmmoPickup::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AAct
 {
 	Super::OnSphereOverlap(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 
-	ABaseCharacter* baseCharacter = Cast<ABaseCharacter>(OtherActor);
+	const ABaseCharacter* baseCharacter = Cast<ABaseCharacter>(OtherActor);
 	if (baseCharacter)
 	{
 		UCombatComponent* combat = baseCharacter->GetCombat();

@@ -218,7 +218,7 @@ void UCombatComponent::UpdateAmmoValues()
 		return;
 	}
 
-	int32 reloadAmount = AmountToReload();
+	const int32 reloadAmount = AmountToReload();
 	if (CarriedAmmoMap.Contains(EquippedWeapon->GetWeaponType()))
 	{
 		if(CarriedAmmoMap[EquippedWeapon->GetWeaponType()]!=INF_AMMO)
@@ -599,7 +599,7 @@ int32 UCombatComponent::AmountToReload()
 	{
 		return 0;
 	}
-	int32 roomInMag = EquippedWeapon->GetMagCapacity() - EquippedWeapon->GetAmmo();
+	const int32 roomInMag = EquippedWeapon->GetMagCapacity() - EquippedWeapon->GetAmmo();
 
 	if(CarriedAmmoMap.Contains(EquippedWeapon->GetWeaponType()))
 	{
@@ -608,7 +608,7 @@ int32 UCombatComponent::AmountToReload()
 		{
 			amountCarried = EquippedWeapon->GetMagCapacity();
 		}
-		int32 least = FMath::Min(roomInMag,amountCarried);
+		const int32 least = FMath::Min(roomInMag,amountCarried);
 		return FMath::Clamp(roomInMag,0,least);
 	}
 	return 0;
